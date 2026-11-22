@@ -5,6 +5,7 @@ export const metadata = { title: `Confidentialité · ${APP_NAME}` };
 
 // Politique de confidentialité, Loi 25 (Québec) et LPRPDE (Canada).
 // ÉBAUCHE À FAIRE RELIRE PAR UN AVOCAT avant la mise en ligne. Chaque fournisseur listé ici est réellement utilisé par le code.
+// GIF : pas au lancement. Si GIPHY_API_KEY est ajoutée, ajouter GIPHY ici (scripts/preflight.mjs le vérifie).
 const processors = [
   { who: "Supabase", what: "Base de données et comptes (nom, courriel, cellulaire, présences, messages)", where: "Canada (région ca-central-1)" },
   { who: "Vercel", what: "Hébergement de l'appli ; journaux techniques (adresse IP, navigateur) gardés peu de temps", where: "États-Unis" },
@@ -12,7 +13,6 @@ const processors = [
   { who: "Resend", what: "Envoi des courriels (adresse courriel, texte du courriel)", where: "États-Unis" },
   { who: "Sentry", what: "Rapports d'erreurs techniques, sans le contenu des messages", where: "États-Unis" },
   { who: "Apple, Google, Mozilla", what: "Livraison des notifications (adresse d'abonnement et contenu chiffré de la notif)", where: "États-Unis" },
-  { who: "GIPHY", what: "Recherche de GIF dans le chat : seul le mot cherché est envoyé, jamais ton nom", where: "États-Unis" },
 ];
 
 export default function Confidentialite() {

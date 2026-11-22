@@ -8,7 +8,7 @@ test.describe("Mise en ligne", () => {
   test("D-1 pages légales : accessibles, chaque fournisseur nommé, liées depuis l'accueil et l'inscription", async ({ page }) => {
     await page.goto("/confidentialite");
     await expect(page.getByRole("heading", { level: 1, name: "Confidentialité" })).toBeVisible();
-    for (const p of ["Supabase", "Vercel", "Twilio", "Resend", "Sentry", "GIPHY"]) await expect(page.getByRole("cell", { name: p, exact: true })).toBeVisible();
+    for (const p of ["Supabase", "Vercel", "Twilio", "Resend", "Sentry"]) await expect(page.getByRole("cell", { name: p, exact: true })).toBeVisible();
     await expect(page.getByText("Commission d'accès à l'information du Québec")).toBeVisible();
     await expectAccessible(page);
     await expectNoHorizontalScroll(page);

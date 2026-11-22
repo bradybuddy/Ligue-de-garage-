@@ -33,7 +33,7 @@ Formation / trios,Match,should,yes,no,S10
 Rotation des bières auto,Bière,must,yes,yes,J; notre identité Buddy & Beer | clone : S22 ; choix auto 24 h avant ou manuel ; compteur de saison
 Compteur de consommations,Bière,could,yes,no,J
 Se retirer de la rotation,Bière,must,yes,yes,J | clone : interrupteur sur S22
-Chat d'équipe + GIF + réactions,Communication,must,yes,partial,"S16; bogue de réactions à éviter | clone : chat, réactions avec tous les noms, suppression : faits ; GIF : code prêt mais clé GIPHY requise et pas testé ; temps réel par rafraîchissement aux 4 s"
+Chat d'équipe + GIF + réactions,Communication,must,yes,yes,"S16; bogue de réactions à éviter | clone : chat, réactions avec tous les noms, suppression : faits ; temps réel par rafraîchissement aux 4 s ; GIF HORS DU LANCEMENT (décision du propriétaire, 2026-11-22) : bouton caché sans GIPHY_API_KEY ; pour l'activer plus tard : clé de production, test d'un GIF, et remettre GIPHY dans /confidentialite"
 Messages privés,Communication,should,yes,no,S17
 Diffusion courriel/texto/notif,Communication,must,partial PRO,yes,S18 | clone : S18 ; public par classe ; 5 par jour max ; historique
 Bulletins et sondages,Communication,should,PRO,no,S19

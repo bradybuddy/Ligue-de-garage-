@@ -11,7 +11,7 @@ Relancer en tout temps : `npm run preflight` (et `npm run preflight -- --prod` a
 
 - [x] Tests e2e : **58 / 58** (Playwright, Pixel 7 ; axe WCAG 2.2 AA, aucune erreur de console ni 5xx), plus base **19 / 19**, unités **3 / 3**
 - [x] Aucun bogue S1 ou S2 ouvert (`bugs.md` : 0 / 0 ; 2 S2 corrigés)
-- [ ] **Fonctions essentielles : 28 / 29.** Reste « Chat + GIF + réactions » : le code GIF est prêt, mais il faut une **clé GIPHY** (developers.giphy.com, gratuite ; demander la clé de *production*) dans `GIPHY_API_KEY`, puis on teste un GIF. Autre choix : lancer sans GIF et changer la ligne de `features.csv`. C'est ta décision.
+- [x] **Fonctions essentielles : 29 / 29.** **Sans GIF au lancement** (décision du propriétaire, 2026-11-22) : le bouton est caché sans `GIPHY_API_KEY`, et GIPHY est retiré de la politique de confidentialité. Pour l'activer plus tard : clé de production, test d'un GIF, GIPHY remis dans `/confidentialite` (le contrôle le vérifie).
 - [x] Balayage de la marque propre : aucun nom, domaine, couleur ni police de l'original dans le code ni dans les noms de fichiers. Le test qui vérifiait l'absence du nom lit maintenant `brand.json` au lieu de l'écrire.
 - [x] Fiche des magasins conforme (`node scripts/check-listing.mjs`)
 - [x] Build de production : réussi
@@ -84,7 +84,7 @@ Ajouté pendant cette étape :
 | `RESEND_API_KEY`, `EMAIL_FROM` | Resend ; ex. `Au Complet <rappels@mail.<domaine>>` |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | web-push ; `mailto:aide@<domaine>` |
 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | Sentry |
-| `GIPHY_API_KEY` | GIPHY (si on garde les GIF) |
+| `GIPHY_API_KEY` | **ne pas définir** (pas de GIF au lancement) |
 | **Jamais** : `ALLOW_DEMO`, `MAILPIT_URL`, `TEST_DATABASE_URL` | le build de production refuse `ALLOW_DEMO` |
 
 ### Domaine (à acheter par toi, chez n'importe quel registraire)
@@ -129,7 +129,7 @@ Libres au 2026-11-22 (`brand.json`) : `aucomplet.ca`, `aucomplet.com`, `aucomple
 ## Preflight (all must pass)
 - [x] e2e suite green: 58 passed / 58 (+ db 19/19, unit 3/3)
 - [x] no open S1 or S2 bugs
-- [ ] parity: all must-haves done (28/29 — GIF : clé GIPHY à fournir)
+- [x] parity: all must-haves done (29/29 — sans GIF au lancement)
 - [x] rebrand sweep clean
 - [x] store listing passes (stores later)
 - [x] production build passes

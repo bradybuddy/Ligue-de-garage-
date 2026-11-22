@@ -80,10 +80,12 @@ else ok("icône finale");
 if (prod) {
   const required = ["APP_URL", "CRON_SECRET", "UNSUBSCRIBE_SECRET", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY",
     "DATABASE_URL", "DATABASE_URL_DIRECT", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_WEBHOOK_URL", "RESEND_API_KEY", "EMAIL_FROM",
-    "NEXT_PUBLIC_VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT", "SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN", "GIPHY_API_KEY"];
+    "NEXT_PUBLIC_VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT", "SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN"];
   const missing = required.filter((k) => !process.env[k]);
   if (!process.env.TWILIO_MESSAGING_SERVICE_SID && !process.env.TWILIO_FROM) missing.push("TWILIO_MESSAGING_SERVICE_SID ou TWILIO_FROM");
   if (missing.length) fail(`variables de production manquantes : ${missing.join(", ")}`); else ok("variables de production présentes");
+  if (process.env.GIPHY_API_KEY && !readFileSync(join(root, "src/app/confidentialite/page.tsx"), "utf8").includes('who: "GIPHY"'))
+    fail("GIPHY_API_KEY est défini, mais GIPHY n'est pas dans la politique de confidentialité");
   if (process.env.ALLOW_DEMO) fail("ALLOW_DEMO est défini : JAMAIS en production");
   if (process.env.MAILPIT_URL) fail("MAILPIT_URL est défini : dev seulement");
   if (process.env.APP_URL && !process.env.APP_URL.startsWith("https://")) fail("APP_URL doit commencer par https://");
