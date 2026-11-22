@@ -1,31 +1,31 @@
 feature,area,priority,original,clone,notes
-Création de compte et connexion,Compte,must,yes,no,S02
+Création de compte et connexion,Compte,must,yes,partial,S02 | clone : S02 fait avec une session de démo ; mot de passe oublié et vraie auth à /replica-backend
 Rejoindre une équipe par code ou lien,Compte,must,yes,no,S03
-Créer une équipe,Équipe,must,yes,no,S04
-Classes de joueurs (régulier/spare/spectateur/staff/vacances/blessé/suspendu),Alignement,must,yes,no,S11-S12; source I
-Rôles gérant / adjoint,Alignement,must,yes,no,E
+Créer une équipe,Équipe,must,yes,partial,"S04 | clone : S04 : nom, sport, max de joueurs ; division et saison plus tard"
+Classes de joueurs (régulier/spare/spectateur/staff/vacances/blessé/suspendu),Alignement,must,yes,yes,S11-S12; source I | clone : 7 classes ; absents exclus des rappels et listés à part sur S07
+Rôles gérant / adjoint,Alignement,must,yes,yes,E | clone : droits vérifiés dans la couche de données (miroir des RLS)
 Importer l'alignement CSV/Excel,Alignement,should,yes,no,S13
 Ramener les joueurs de la saison passée,Alignement,should,yes,no,E
 Exporter l'alignement,Alignement,could,yes,no,E
 Classement des joueurs pour équilibrer les équipes,Alignement,could,yes,no,E
-Horaire : ajouter/modifier/supprimer un match,Horaire,must,yes,no,S06-S08
+Horaire : ajouter/modifier/supprimer un match,Horaire,must,yes,yes,"S06-S08 | clone : S06, S08 ; annuler ou supprimer avec confirmation ; heure stockée en UTC"
 Importer l'horaire CSV/Excel,Horaire,should,yes,no,S09
 Synchro auto de l'horaire de la ligue (iCal),Horaire,should,PRO,no,C
 Abonnement calendrier (ICS) pour le joueur,Horaire,must,yes,no,F; bogue d'heure avancée à éviter
 Assigner les chambres,Horaire,could,yes,no,E
-Réponse IN/OUT dans l'appli,Présences,must,yes,no,F02 cœur
-Réponse IN/OUT par courriel,Présences,must,yes,no,C
-Réponse IN/OUT par texto (Y/N),Présences,must,PRO,no,C; inclus chez nous
-Note sur la présence,Présences,should,yes,no,F
-Rappels automatiques avant le match (délai réglable),Présences,must,yes,no,E
-Relance manuelle des sans-réponse,Présences,should,yes,no,E
-Avis au gérant quand un joueur passe IN→OUT,Présences,must,yes,no,E
+Réponse IN/OUT dans l'appli,Présences,must,yes,yes,"F02 cœur | clone : S05, S07 ; clavier OK ; liste d'attente si complet"
+Réponse IN/OUT par courriel,Présences,must,yes,partial,"C | clone : lien /r/[jeton] OK, sûr face aux antivirus ; envoi réel (Resend) à brancher"
+Réponse IN/OUT par texto (Y/N),Présences,must,PRO,partial,C; inclus chez nous | clone : Y/N/OUI/NON + code si plusieurs matchs ; webhook Twilio signé ; pas encore de vrai numéro
+Note sur la présence,Présences,should,yes,partial,F | clone : stockée et affichée ; pas encore de champ pour l'écrire
+Rappels automatiques avant le match (délai réglable),Présences,must,yes,partial,"E | clone : tâche idempotente, 48 h avant ; réglage du délai (S25) et pg_cron à brancher"
+Relance manuelle des sans-réponse,Présences,should,yes,yes,E | clone : bouton sur S07
+Avis au gérant quand un joueur passe IN→OUT,Présences,must,yes,partial,E | clone : mis dans la file d'envoi ; livraison push/texto réelle à brancher
 Check-in automatique,Présences,could,yes,no,F
-Max joueurs / max gardiens,Présences,must,yes,no,G
+Max joueurs / max gardiens,Présences,must,yes,yes,"G | clone : plafonds séparés, par équipe et par match"
 Invitations automatiques aux spares,Spares,must,PRO,no,G; notre argument #1; ajouter texto + notif (BenchApp = courriel seulement en auto)
 Invitation manuelle de spares (courriel/texto/notif),Spares,must,yes,no,S14
-Liste d'attente,Spares,must,yes,no,S15
-Liste d'attente auto (haut de liste ou premier qui accepte),Spares,must,PRO,no,H
+Liste d'attente,Spares,must,yes,partial,"S15 | clone : automatique ; écran S15 (réordonner, accepter) au jalon 2"
+Liste d'attente auto (haut de liste ou premier qui accepte),Spares,must,PRO,partial,H | clone : mode haut de liste (réguliers d'abord) fait ; « premier qui accepte » au jalon 2
 Frais de spare,Spares,should,yes,no,E
 Payer pour jouer (carte avant IN),Spares,could,PRO,no,C
 Formation / trios,Match,should,yes,no,S10
@@ -60,7 +60,7 @@ Ligue : classement auto,Ligue,should,League,no,L05
 Ligue : meneurs,Ligue,could,League,no,L06
 Ligue : site public,Ligue,could,League,no,L08
 Ligue : inscriptions + bassin de joueurs,Ligue,could,League,no,L07
-Interface en français (Québec) d'abord,Différenciateur,must,unclear,no,à nous
-Zéro pub,Différenciateur,must,no,no,BenchApp a des pubs en gratuit (C; F BenchApp Plus)
+Interface en français (Québec) d'abord,Différenciateur,must,unclear,yes,à nous | clone : tous les textes écrits à neuf en fr-CA
+Zéro pub,Différenciateur,must,no,yes,BenchApp a des pubs en gratuit (C; F BenchApp Plus)
 Nom/logo/couleurs/textes BenchApp,Hors-portée,skip,yes,no,marque de BenchApp
 Réseau de 60 000 équipes,Hors-portée,skip,yes,no,se bâtit pas en copiant
