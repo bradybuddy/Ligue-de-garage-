@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/feedback";
 import { remindAction, respondAction } from "@/app/actions/events";
 import { cn } from "@/lib/cn";
+import { callAction, failMessage } from "@/lib/client-action";
 
 export function RemindButton({ teamId, eventId, count }: { teamId: string; eventId: string; count: number }) {
   const router = useRouter();
@@ -14,7 +15,11 @@ export function RemindButton({ teamId, eventId, count }: { teamId: string; event
   return (
     <div className="flex flex-col gap-2">
       <Button variant="secondary" loading={pending} disabled={count === 0}
-        onClick={() => start(async () => { setMsg(await remindAction(teamId, eventId)); router.refresh(); })}>
+        onClick={() => start(async () => {
+          const r = await callAction(() => remindAction(teamId, eventId));
+          setMsg(r.ok ? r.value : { ok: false, message: failMessage(r.offline, "La relance n'est pas partie.") });
+          if (r.ok) router.refresh();
+        })}>
         <BellRing aria-hidden className="size-4" />
         {count === 0 ? "Tout le monde a répondu" : `Relancer les ${count} sans réponse`}
       </Button>
@@ -29,9 +34,9 @@ export function SetForPlayer({ teamId, eventId, memberId, name, status }: { team
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const set = (v: "in" | "out") => start(async () => {
-    const r = await respondAction(teamId, eventId, memberId, v);
-    setErr(r.ok ? null : r.error);
-    router.refresh();
+    const r = await callAction(() => respondAction(teamId, eventId, memberId, v));
+    setErr(!r.ok ? failMessage(r.offline) : r.value.ok ? null : r.value.error);
+    if (r.ok) router.refresh();
   });
   const btn = "inline-flex size-9 items-center justify-center rounded-md border border-border-input text-muted transition-ui hover:bg-surface-2 disabled:opacity-50";
   return (
@@ -42,7 +47,7 @@ export function SetForPlayer({ teamId, eventId, memberId, name, status }: { team
       <button type="button" disabled={pending || status === "out"} onClick={() => set("out")} aria-label={`Mettre ${name} OUT`} className={cn(btn, "hover:text-out")}>
         <X aria-hidden className="size-4" strokeWidth={3} />
       </button>
-      {err && <span role="alert" className="sr-only">{err}</span>}
+      {err && <span role="alert" title={err} className="max-w-28 text-xs font-semibold leading-tight text-out">{err.startsWith("Pas de connexion") ? "Pas de réseau" : "Pas enregistré"}<span className="sr-only"> : {err}</span></span>}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { AttendanceToggle } from "@/components/ui/attendance";
 import { Banner } from "@/components/ui/feedback";
 import { respondAction } from "@/app/actions/events";
+import { callAction, failMessage } from "@/lib/client-action";
 import type { AttendanceStatus } from "@/lib/data/types";
 
 /** Bouton IN/OUT relié au serveur. Un clic = une réponse. */
@@ -23,10 +24,11 @@ export function MyAttendance({ teamId, eventId, memberId, status, lockedReason, 
     setPending(v);
     setError(null);
     start(async () => {
-      const r = await respondAction(teamId, eventId, memberId, v);
-      if (r.ok) setValue(r.status as AttendanceStatus);
-      else setError(r.error);
+      const res = await callAction(() => respondAction(teamId, eventId, memberId, v));
       setPending(null);
+      if (!res.ok) return setError(failMessage(res.offline));
+      if (res.value.ok) setValue(res.value.status as AttendanceStatus);
+      else setError(res.value.error);
       router.refresh();
     });
   };
