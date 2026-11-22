@@ -18,6 +18,7 @@ export default async function Page({ params }: { params: Promise<{ teamId: strin
   const back = { href: `/t/${teamId}/matchs/${eventId}`, label: "Retour au match" };
   if (!d.canManage) return (<><PageTitle title="Modifier le match" back={back} /><Banner tone="warning">Seuls le gérant et l&apos;adjoint peuvent modifier l&apos;horaire.</Banner></>);
   const ev = d.event;
+  if (ev.leagueGameId) return (<><PageTitle title="Modifier le match" back={back} /><Banner tone="info">Ce match vient de l&apos;horaire de la ligue : c&apos;est la ligue qui le modifie ou l&apos;annule. Ton équipe gère les présences, les spares et la tournée comme d&apos;habitude.</Banner></>);
   const p = utcToZonedParts(ev.startsAt, d.team.timezone);
   const venues = [...new Set((await listEvents(user.id, teamId, "upcoming")).map((e) => e.venue).filter((x): x is string => !!x))];
   return (

@@ -14,7 +14,7 @@ import { deliverOutbox } from "./delivery";
 import {
   DomainError, type Attendance, type AttendanceStatus, type EventDetail, type InboundSms, type Member, type OutboxItem, type PlayerClass,
   type ResponseSource, type RosterEntry, type Sport, type Team, type TeamEvent, type User,
-  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview, type ChatMessage, type BroadcastSummary, type TeamSettingsInput, type MemberPrefs, type PrefCategory, type MemberRole,
+  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview, type ChatMessage, type BroadcastSummary, type TeamSettingsInput, type MemberPrefs, type PrefCategory, type MemberRole, type League, type Division, type LeagueTeam, type LeagueOverview, type LeagueGame, type LeagueGameInput, type StandingRow,
 } from "./types";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -250,6 +250,7 @@ export async function updateEvent(actor: Actor, eventId: string, input: EventInp
     const [cur] = await tx<TeamEvent[]>`select * from events where id = ${eventId}`;
     if (!cur) throw new DomainError("Match introuvable.", "not_found");
     if (actor !== "system") await assertManager(tx, cur.teamId);
+    if (cur.leagueGameId) throw new DomainError("Ce match vient de l'horaire de la ligue : c'est la ligue qui le modifie.", "forbidden");
     const [team] = await tx<Team[]>`select * from teams where id = ${cur.teamId}`;
     const startsAt = startsAtFor(input, team!).toISOString();
     const moved = startsAt !== cur.startsAt;
@@ -269,6 +270,7 @@ export async function cancelEvent(actor: Actor, eventId: string): Promise<void> 
     const [cur] = await tx<TeamEvent[]>`select * from events where id = ${eventId}`;
     if (!cur) throw new DomainError("Match introuvable.", "not_found");
     if (actor !== "system") await assertManager(tx, cur.teamId);
+    if (cur.leagueGameId) throw new DomainError("Ce match vient de l'horaire de la ligue : c'est la ligue qui l'annule ou le retire.", "forbidden");
     await tx`update events set status = 'cancelled' where id = ${eventId}`;
   });
 }
@@ -278,6 +280,7 @@ export async function deleteEvent(actor: Actor, eventId: string): Promise<void> 
     const [cur] = await tx<TeamEvent[]>`select * from events where id = ${eventId}`;
     if (!cur) throw new DomainError("Match introuvable.", "not_found");
     if (actor !== "system") await assertManager(tx, cur.teamId);
+    if (cur.leagueGameId) throw new DomainError("Ce match vient de l'horaire de la ligue : c'est la ligue qui l'annule ou le retire.", "forbidden");
     await tx`delete from events where id = ${eventId}`;
   });
 }
@@ -955,5 +958,210 @@ export async function setNotificationPref(userId: string, memberId: string, cate
     if (!m) throw new DomainError("Ce n'est pas ta fiche.", "forbidden");
     await tx`insert into notification_prefs (member_id, category, channel, enabled) values (${memberId}, ${category}, ${channel}, ${enabled})
              on conflict (member_id, category, channel) do update set enabled = excluded.enabled`;
+  });
+}
+
+// ───────────── Ligue (L01, L02, L03, L05, L09) ─────────────
+async function assertLeagueAdmin(tx: Tx, leagueId: string) {
+  const [r] = await tx<{ ok: boolean }[]>`select is_league_admin(${leagueId}::uuid) as ok`;
+  if (!r?.ok) throw new DomainError("Seuls les administrateurs de la ligue peuvent faire ça.", "forbidden");
+}
+
+export async function listMyLeagues(userId: string): Promise<League[]> {
+  return asUser(userId, (tx) => tx<League[]>`
+    select l.* from leagues l join league_admins a on a.league_id = l.id where a.user_id = ${userId} order by l.name`);
+}
+
+export async function createLeague(userId: string, name: string, divisions: string[]): Promise<string> {
+  return asUser(userId, async (tx) => {
+    const [{ id }] = await tx<{ id: string }[]>`select create_league(${name}) as id`;
+    let i = 0;
+    for (const d of divisions.map((x) => x.trim()).filter(Boolean)) await tx`insert into divisions (league_id, name, sort_order) values (${id}, ${d}, ${i++})`;
+    return id;
+  });
+}
+
+export async function getLeagueOverview(userId: string, leagueId: string): Promise<LeagueOverview> {
+  if (!isUuid(leagueId)) throw new DomainError("Ligue introuvable.", "not_found");
+  return asUser(userId, async (tx) => {
+    const [league] = await tx<League[]>`select * from leagues where id = ${leagueId}`;
+    if (!league) throw new DomainError("Ligue introuvable.", "not_found"); // RLS : invisible si ni admin ni membre d'une équipe
+    const [{ admin }] = await tx<{ admin: boolean }[]>`select is_league_admin(${leagueId}::uuid) as admin`;
+    const divisions = await tx<Division[]>`select * from divisions where league_id = ${leagueId} order by sort_order, name`;
+    const teams = await asService((s) => s<LeagueTeam[]>`
+      select t.id, t.name, t.division_id, t.invite_code,
+             (select count(*)::int from members m where m.team_id = t.id and m.left_at is null) as members,
+             (select m.display_name from members m where m.team_id = t.id and m.role = 'manager' and m.left_at is null order by m.created_at limit 1) as manager_name
+        from teams t where t.league_id = ${leagueId} order by t.name`);
+    return { league, isAdmin: admin, divisions, teams: admin ? teams : teams.map((t) => ({ ...t, inviteCode: "" })) };
+  });
+}
+
+export async function addDivision(userId: string, leagueId: string, name: string): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    const [{ n }] = await tx<{ n: number }[]>`select count(*)::int as n from divisions where league_id = ${leagueId}`;
+    await tx`insert into divisions (league_id, name, sort_order) values (${leagueId}, ${name.trim()}, ${n})`;
+  });
+}
+
+export async function renameDivision(userId: string, leagueId: string, divisionId: string, name: string): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    await tx`update divisions set name = ${name.trim()} where id = ${divisionId} and league_id = ${leagueId}`;
+  });
+}
+
+export async function deleteDivision(userId: string, leagueId: string, divisionId: string): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    await tx`delete from divisions where id = ${divisionId} and league_id = ${leagueId}`; // les équipes passent « sans division » (on delete set null)
+  });
+}
+
+export async function attachTeam(userId: string, leagueId: string, code: string, divisionId: string | null): Promise<string> {
+  return asUser(userId, async (tx) => {
+    try {
+      const [{ id }] = await tx<{ id: string }[]>`select attach_team_to_league(${leagueId}, ${code}, ${divisionId}::uuid) as id`;
+      return id;
+    } catch (e) {
+      const m = (e as Error).message;
+      if (m === "déjà dans une autre ligue") throw new DomainError("Cette équipe fait déjà partie d'une autre ligue.", "conflict");
+      if (m === "division invalide") throw new DomainError("Division invalide.");
+      throw e;
+    }
+  });
+}
+
+export async function createLeagueTeam(userId: string, leagueId: string, name: string, divisionId: string | null): Promise<string> {
+  return asUser(userId, async (tx) => {
+    const [{ id }] = await tx<{ id: string }[]>`select create_league_team(${leagueId}, ${name}, ${divisionId}::uuid) as id`;
+    return id;
+  });
+}
+
+export async function setTeamDivision(userId: string, leagueId: string, teamId: string, divisionId: string | null): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    if (divisionId) {
+      const [d] = await tx`select 1 from divisions where id = ${divisionId} and league_id = ${leagueId}`;
+      if (!d) throw new DomainError("Division invalide.");
+    }
+    const r = await tx`update teams set division_id = ${divisionId} where id = ${teamId} and league_id = ${leagueId} returning id`;
+    if (!r.length) throw new DomainError("Équipe introuvable.", "not_found");
+  });
+}
+
+export async function detachTeam(userId: string, leagueId: string, teamId: string): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    const [g] = await tx`select 1 from league_games where (home_team_id = ${teamId} or away_team_id = ${teamId}) and status = 'scheduled' and starts_at > now()`;
+    if (g) throw new DomainError("Cette équipe a encore des matchs à venir dans la ligue. Retire-les d'abord.", "conflict");
+    await tx`update teams set league_id = null, division_id = null where id = ${teamId} and league_id = ${leagueId}`;
+  });
+}
+
+export async function listLeagueGames(userId: string, leagueId: string, when: "upcoming" | "past" | "all" = "upcoming"): Promise<LeagueGame[]> {
+  return asUser(userId, (tx) => tx<LeagueGame[]>`
+    select g.*, h.name as home_name, a.name as away_name from league_games g
+      join teams h on h.id = g.home_team_id join teams a on a.id = g.away_team_id
+     where g.league_id = ${leagueId}
+       and ${when === "upcoming" ? tx`g.starts_at >= now() - interval '3 hours'` : when === "past" ? tx`g.starts_at < now() - interval '3 hours'` : tx`true`}
+     order by g.starts_at ${when === "past" ? tx`desc` : tx`asc`}`);
+}
+
+export async function getLeagueGame(userId: string, leagueId: string, gameId: string): Promise<LeagueGame> {
+  if (!isUuid(gameId)) throw new DomainError("Match introuvable.", "not_found");
+  const [g] = await asUser(userId, (tx) => tx<LeagueGame[]>`
+    select g.*, h.name as home_name, a.name as away_name from league_games g
+      join teams h on h.id = g.home_team_id join teams a on a.id = g.away_team_id where g.id = ${gameId} and g.league_id = ${leagueId}`);
+  if (!g) throw new DomainError("Match introuvable.", "not_found");
+  return g;
+}
+
+export async function saveLeagueGame(userId: string, leagueId: string, gameId: string | null, input: LeagueGameInput): Promise<string> {
+  if (input.homeTeamId === input.awayTeamId) throw new DomainError("Une équipe ne peut pas jouer contre elle-même.");
+  return asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    const [league] = await tx<League[]>`select * from leagues where id = ${leagueId}`;
+    const teams = await tx<{ id: string; divisionId: string | null }[]>`select id, division_id from teams where league_id = ${leagueId} and id in ${tx([input.homeTeamId, input.awayTeamId])}`;
+    if (teams.length !== 2) throw new DomainError("Les deux équipes doivent faire partie de la ligue.");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !/^\d{2}:\d{2}$/.test(input.time)) throw new DomainError("Date ou heure invalide.");
+    const startsAt = zonedToUtc(input.date, input.time, league!.timezone).toISOString();
+    const division = teams[0]!.divisionId && teams[0]!.divisionId === teams[1]!.divisionId ? teams[0]!.divisionId : null;
+    if (gameId) {
+      const r = await tx<{ id: string }[]>`update league_games set home_team_id = ${input.homeTeamId}, away_team_id = ${input.awayTeamId}, starts_at = ${startsAt},
+        venue = ${input.venue?.trim() || null}, division_id = ${division} where id = ${gameId} and league_id = ${leagueId} returning id`;
+      if (!r.length) throw new DomainError("Match introuvable.", "not_found");
+      return gameId;
+    }
+    const [g] = await tx<{ id: string }[]>`insert into league_games (league_id, division_id, home_team_id, away_team_id, starts_at, venue)
+      values (${leagueId}, ${division}, ${input.homeTeamId}, ${input.awayTeamId}, ${startsAt}, ${input.venue?.trim() || null}) returning id`;
+    return g!.id;
+  });
+}
+
+export async function setLeagueGameResult(userId: string, leagueId: string, gameId: string, r: { homeScore: number; awayScore: number; overtime: boolean } | null, status: "scheduled" | "final" | "cancelled"): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    const rows = await tx`update league_games set status = ${status}, home_score = ${r?.homeScore ?? null}, away_score = ${r?.awayScore ?? null}, overtime = ${r?.overtime ?? false}
+                          where id = ${gameId} and league_id = ${leagueId} returning id`;
+    if (!rows.length) throw new DomainError("Match introuvable.", "not_found");
+  });
+}
+
+export async function deleteLeagueGame(userId: string, leagueId: string, gameId: string): Promise<void> {
+  await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    await tx`delete from league_games where id = ${gameId} and league_id = ${leagueId}`;
+  });
+}
+
+export async function getStandings(userId: string, leagueId: string): Promise<StandingRow[]> {
+  return asUser(userId, (tx) => tx<StandingRow[]>`select * from league_standings(${leagueId})`);
+}
+
+const LEAGUE_BROADCASTS_PER_DAY = 3;
+
+export async function sendLeagueBroadcast(userId: string, leagueId: string, input: { subject?: string | null; body: string; channels: Channel[]; audience: PlayerClass[]; managersOnly: boolean }): Promise<number> {
+  const body = input.body.trim();
+  if (!body || !input.channels.length) throw new DomainError("Message et canal requis.");
+  const id = await asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    const [{ n }] = await tx<{ n: number }[]>`select count(*)::int as n from broadcasts where league_id = ${leagueId} and created_at > now() - interval '24 hours'`;
+    if (n >= LEAGUE_BROADCASTS_PER_DAY) throw new DomainError(`Maximum ${LEAGUE_BROADCASTS_PER_DAY} messages à toute la ligue par jour.`, "conflict");
+    const [b] = await tx<{ id: string }[]>`insert into broadcasts (league_id, author_id, channels, audience, subject, body, sent_at)
+      values (${leagueId}, ${userId}, ${input.channels}, ${input.managersOnly ? ["staff"] : input.audience}, ${input.subject?.trim() || null}, ${body}, now()) returning id`;
+    return b!.id;
+  });
+  const n = await asService(async (tx) => {
+    const [league] = await tx<League[]>`select * from leagues where id = ${leagueId}`;
+    const members = input.managersOnly
+      ? await tx<Member[]>`select m.* from members m join teams t on t.id = m.team_id where t.league_id = ${leagueId} and m.left_at is null and m.role in ('manager','assistant')`
+      : await tx<Member[]>`select m.* from members m join teams t on t.id = m.team_id where t.league_id = ${leagueId} and m.left_at is null and m.class in ${tx(input.audience)}`;
+    const text = `${league!.name} : ${body}`.slice(0, 600);
+    let reached = 0;
+    for (const m of members) {
+      let ok = false;
+      if (input.channels.includes("push") && m.userId) ok = (await enqueue(tx, { memberId: m.id, channel: "push", category: "broadcast", template: "league_broadcast", to: null, body: text, dedupeKey: `lbc:${id}:${m.id}:push`, payload: { url: `/t/${m.teamId}` } })) || ok;
+      if (input.channels.includes("sms") && m.phone && m.smsOptIn) ok = (await enqueue(tx, { memberId: m.id, channel: "sms", category: "broadcast", template: "league_broadcast", to: m.phone, body: text, dedupeKey: `lbc:${id}:${m.id}:sms` })) || ok;
+      if (input.channels.includes("email") && m.email) ok = (await enqueue(tx, { memberId: m.id, channel: "email", category: "broadcast", template: "league_broadcast", to: m.email,
+        subject: input.subject?.trim() || `${league!.name} : message de la ligue`, body: `${body}\n\n— ${league!.name}`, dedupeKey: `lbc:${id}:${m.id}:email` })) || ok;
+      if (ok) reached++;
+    }
+    return reached;
+  });
+  void deliverOutbox({ limit: 500 }).catch((e) => console.error("livraison", e));
+  return n;
+}
+
+export async function listLeagueBroadcasts(userId: string, leagueId: string): Promise<BroadcastSummary[]> {
+  return asUser(userId, async (tx) => {
+    await assertLeagueAdmin(tx, leagueId);
+    const rows = await tx<BroadcastSummary[]>`select b.id, b.subject, b.body, b.channels, b.audience, b.sent_at, p.display_name as author_name
+      from broadcasts b left join profiles p on p.id = b.author_id where b.league_id = ${leagueId} order by b.created_at desc limit 20`;
+    const counts = rows.length ? await asService((s) => s<{ id: string; n: number }[]>`select split_part(dedupe_key, ':', 2) as id, count(distinct member_id)::int as n
+      from outbox where dedupe_key like 'lbc:%' and split_part(dedupe_key, ':', 2) in ${s(rows.map((r) => r.id))} group by 1`) : [];
+    return rows.map((r) => ({ ...r, recipients: counts.find((c) => c.id === r.id)?.n ?? 0 }));
   });
 }

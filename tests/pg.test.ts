@@ -306,4 +306,68 @@ describe("Postgres + RLS", { skip }, () => {
     assert.equal(hist.length, 5);
     assert.equal(hist.at(-1)!.recipients, 3);
   });
+
+  test("ligue : divisions, rattacher par code, horaire central recopié dans les 2 équipes, classement", async () => {
+    const leagueId = await data.createLeague(stranger, "Ligue du Garage", ["A", "B"]);
+    await assert.rejects(data.getLeagueOverview(marc, leagueId), /introuvable/); // pas encore dans la ligue
+    const ov = await data.getLeagueOverview(stranger, leagueId);
+    assert.equal(ov.isAdmin, true);
+    const [divA, divB] = ov.divisions;
+    const code = (await admin`select invite_code from teams where id = ${teamId}`)[0]!.invite_code;
+    await data.attachTeam(stranger, leagueId, code, divA!.id);
+    const other = await data.createLeagueTeam(stranger, leagueId, "Les Castors", divA!.id);
+    await assert.rejects(data.attachTeam(marc, leagueId, code, null), /pas le droit|administrateurs/);
+    // Marc (gérant d'une équipe de la ligue) voit la ligue, sans les codes d'équipe
+    const seen = await data.getLeagueOverview(marc, leagueId);
+    assert.equal(seen.isAdmin, false);
+    assert.ok(seen.teams.every((t) => t.inviteCode === ""));
+
+    const d = new Date(Date.now() + 5 * 86400_000).toISOString().slice(0, 10);
+    const gameId = await data.saveLeagueGame(stranger, leagueId, null, { date: d, time: "20:30", homeTeamId: teamId, awayTeamId: other, venue: "Aréna centrale" });
+    const evs = await admin`select team_id, opponent, venue, starts_at from events where league_game_id = ${gameId} order by team_id = ${teamId} desc`;
+    assert.equal(evs.length, 2);
+    assert.equal(evs[0]!.opponent, "Les Castors");
+    assert.equal(evs[1]!.opponent, "Les Testeurs");
+    // Le gérant d'équipe ne peut pas modifier le match de ligue, ni par l'appli ni en SQL direct
+    const ourEvent = (await admin`select id from events where league_game_id = ${gameId} and team_id = ${teamId}`)[0]!.id;
+    await assert.rejects(data.updateEvent(marc, ourEvent, { type: "game", date: d, time: "22:00" }), /horaire de la ligue/);
+    await assert.rejects(data.cancelEvent(marc, ourEvent), /horaire de la ligue/);
+    await assert.rejects(asRole(marc, `update events set starts_at = now() where id = '${ourEvent}'`), /match de ligue/);
+    // ... mais l'équipe répond aux présences comme d'habitude
+    const det = await data.getEventDetail(marc, ourEvent);
+    assert.equal(await data.respond(marc, ourEvent, det.me!.id, "in"), "in");
+    // La ligue déplace le match : les 2 équipes suivent, le rappel repart
+    await admin`update events set reminder_sent_at = now() where league_game_id = ${gameId}`;
+    await data.saveLeagueGame(stranger, leagueId, gameId, { date: d, time: "21:45", homeTeamId: teamId, awayTeamId: other, venue: "Aréna centrale" });
+    const moved = await admin`select starts_at, reminder_sent_at from events where league_game_id = ${gameId}`;
+    assert.ok(moved.every((e) => e.reminder_sent_at === null));
+    assert.equal(new Set(moved.map((e) => new Date(e.starts_at).toISOString())).size, 1);
+    // Pointage final → classement et score des 2 côtés
+    await data.setLeagueGameResult(stranger, leagueId, gameId, { homeScore: 5, awayScore: 3, overtime: false }, "final");
+    const sc = await admin`select team_id, score_us, score_them, status from events where league_game_id = ${gameId}`;
+    assert.ok(sc.some((e) => e.team_id === teamId && e.score_us === 5 && e.score_them === 3 && e.status === "final"));
+    const st = await data.getStandings(marc, leagueId);
+    assert.deepEqual(st.map((r) => [r.teamName, r.gp, r.w, r.l, r.pts, r.gf, r.ga]), [["Les Testeurs", 1, 1, 0, 2, 5, 3], ["Les Castors", 1, 0, 1, 0, 3, 5]]);
+    assert.equal((await data.getStandings(sophie, leagueId)).length, 2); // Sophie, joueuse d'une équipe de la ligue, voit le classement
+    assert.equal((await data.getStandings(randomUUID(), leagueId)).length, 0); // un inconnu : rien
+    await data.setTeamDivision(stranger, leagueId, other, divB!.id);
+    await data.deleteLeagueGame(stranger, leagueId, gameId);
+    assert.equal((await admin`select count(*)::int as n from events where league_game_id = ${gameId}`)[0]!.n, 0);
+    const [{ n }] = await asRole(marc, `select count(*)::int as n from leagues where id = '${leagueId}'`);
+    assert.equal(n, 1); // membre d'une équipe de la ligue : voit la ligue
+  });
+
+  test("ligue : message à toute la ligue (admins seulement, toutes les équipes)", async () => {
+    const leagueId = await data.createLeague(stranger, "Ligue Message", []);
+    const code = (await admin`select invite_code from teams where id = ${teamId}`)[0]!.invite_code;
+    await data.attachTeam(stranger, leagueId, code, null);
+    const other = await data.createLeagueTeam(stranger, leagueId, "Autre Équipe", null);
+    await admin`insert into members (team_id, display_name, phone, sms_opt_in) values (${other}, 'Joueur Autre', '+14385550000', true)`;
+    await assert.rejects(data.sendLeagueBroadcast(marc, leagueId, { body: "x", channels: ["sms"], audience: ["regular"], managersOnly: false }), /administrateurs/);
+    const n = await data.sendLeagueBroadcast(stranger, leagueId, { body: "Séries le 15 mars!", channels: ["sms"], audience: ["regular"], managersOnly: false });
+    assert.equal(n, 2); // Bob (texto) dans notre équipe + Joueur Autre ; Marc et Sophie n'ont pas de cellulaire
+    const mgr = await data.sendLeagueBroadcast(stranger, leagueId, { body: "Réunion des gérants", channels: ["push"], audience: [], managersOnly: true });
+    assert.equal(mgr, 1); // seul Marc est gérant (avec un compte)
+    assert.equal((await data.listLeagueBroadcasts(stranger, leagueId)).length, 2);
+  });
 });

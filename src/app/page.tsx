@@ -2,15 +2,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Beer, KeyRound, Trophy, UsersRound } from "lucide-react";
 import { currentUser } from "@/lib/auth";
-import { listMyTeams } from "@/lib/data";
+import { listMyLeagues, listMyTeams } from "@/lib/data";
 
 /** S01 — Accueil / choix du rôle */
 export default async function Home() {
   const user = await currentUser();
   if (user) {
-    const teams = await listMyTeams(user.id);
-    if (teams.length === 1) redirect(`/t/${teams[0]!.team.id}`);
-    if (teams.length > 1) redirect("/equipes");
+    const [teams, leagues] = await Promise.all([listMyTeams(user.id), listMyLeagues(user.id)]);
+    if (teams.length === 1 && leagues.length === 0) redirect(`/t/${teams[0]!.team.id}`);
+    if (teams.length === 0 && leagues.length === 1) redirect(`/ligue/${leagues[0]!.id}`);
+    if (teams.length + leagues.length > 1) redirect("/equipes");
   }
   const cards = [
     { href: "/equipes/nouvelle", Icon: UsersRound, title: "Je gère une équipe", body: "Crée ton équipe, ajoute tes joueurs, on s'occupe des présences et des spares." },

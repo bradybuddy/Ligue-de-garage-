@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Beer, LogOut } from "lucide-react";
+import { Beer, LogOut, Trophy } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getTeamForUser } from "@/lib/data";
 import { orNotFound } from "@/lib/guard";
@@ -20,6 +20,11 @@ export default async function TeamLayout({ children, params }: { children: React
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent"><Beer aria-hidden className="size-4" /></span>
             <span className="truncate font-display text-xl font-bold">{team.name}</span>
           </Link>
+          {team.leagueId && (
+            <Link href={`/ligue/${team.leagueId}`} className="ml-auto inline-flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-text">
+              <Trophy aria-hidden className="size-4" />Ligue
+            </Link>
+          )}
           <form action={signOutAction}>
             <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-md px-3 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-text">
               <LogOut aria-hidden className="size-4" /><span className="hidden sm:inline">Déconnexion</span><span className="sr-only sm:hidden">Déconnexion</span>

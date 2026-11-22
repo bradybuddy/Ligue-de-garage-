@@ -35,6 +35,8 @@ export interface Team {
   waitlistMode: WaitlistMode;
   beerEnabled: boolean;
   autoSparesChannels: Channel[];
+  leagueId?: string | null;
+  divisionId?: string | null;
   secondReminderHoursBefore?: number | null;
   beerTiebreak?: "alpha" | "jersey";
   createdAt: string;
@@ -76,6 +78,7 @@ export interface TeamEvent {
   scoreThem: number | null;
   reminderSentAt: string | null;
   sparesInvitedAt?: string | null;
+  leagueGameId?: string | null;
   createdAt: string;
 }
 
@@ -246,3 +249,15 @@ export interface TeamSettingsInput {
 }
 export type PrefCategory = "reminder" | "spare_invite" | "waitlist" | "beer" | "chat" | "broadcast" | "manager_alert";
 export interface MemberPrefs { teamId: string; teamName: string; memberId: string; isManager: boolean; isSpare: boolean; off: string[] /* "categorie:canal" désactivés */ }
+
+// ───────────── Ligue ─────────────
+export interface League { id: string; ownerId: string | null; name: string; slug: string; timezone: string }
+export interface Division { id: string; leagueId: string; name: string; sortOrder: number }
+export interface LeagueTeam { id: string; name: string; divisionId: string | null; inviteCode: string; members: number; managerName: string | null }
+export interface LeagueOverview { league: League; isAdmin: boolean; divisions: Division[]; teams: LeagueTeam[] }
+export interface LeagueGame {
+  id: string; leagueId: string; divisionId: string | null; homeTeamId: string; awayTeamId: string; homeName: string; awayName: string;
+  startsAt: string; venue: string | null; status: EventStatus; homeScore: number | null; awayScore: number | null; overtime: boolean;
+}
+export interface LeagueGameInput { date: string; time: string; homeTeamId: string; awayTeamId: string; venue?: string | null }
+export interface StandingRow { divisionId: string | null; teamId: string; teamName: string; gp: number; w: number; l: number; t: number; otl: number; pts: number; gf: number; ga: number }

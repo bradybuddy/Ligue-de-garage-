@@ -1,21 +1,30 @@
 import Link from "next/link";
 import { ChevronRight, Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
-import { listMyTeams } from "@/lib/data";
+import { listMyLeagues, listMyTeams } from "@/lib/data";
+import { Trophy } from "lucide-react";
 import { AuthLayout } from "@/components/app/auth-layout";
 
 /** Choix de l'équipe quand on est dans plusieurs. */
 export default async function Page() {
   const user = await requireUser("/equipes");
-  const teams = await listMyTeams(user.id);
+  const [teams, leagues] = await Promise.all([listMyTeams(user.id), listMyLeagues(user.id)]);
   return (
-    <AuthLayout title="Tes équipes">
+    <AuthLayout title="Tes équipes et ligues">
       <ul className="flex flex-col divide-y divide-border">
         {teams.map(({ team, me }) => (
           <li key={team.id}>
             <Link href={`/t/${team.id}`} className="flex min-h-14 items-center justify-between gap-3 py-2 hover:text-accent-strong">
               <span className="flex flex-col"><span className="font-semibold">{team.name}</span>
                 <span className="text-sm text-muted">{me.role === "manager" ? "Gérant" : me.role === "assistant" ? "Adjoint" : "Joueur"}</span></span>
+              <ChevronRight aria-hidden className="size-5 text-muted" />
+            </Link>
+          </li>
+        ))}
+        {leagues.map((l) => (
+          <li key={l.id}>
+            <Link href={`/ligue/${l.id}`} className="flex min-h-14 items-center justify-between gap-3 py-2 hover:text-accent-strong">
+              <span className="flex items-center gap-2"><Trophy aria-hidden className="size-4 text-muted" /><span className="flex flex-col"><span className="font-semibold">{l.name}</span><span className="text-sm text-muted">Ligue · administrateur</span></span></span>
               <ChevronRight aria-hidden className="size-5 text-muted" />
             </Link>
           </li>

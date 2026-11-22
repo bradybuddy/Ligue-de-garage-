@@ -1,6 +1,15 @@
-import { PublicStub } from "@/components/app/stub";
+import { requireUser } from "@/lib/auth";
+import { AuthLayout } from "@/components/app/auth-layout";
+import { CreateLeagueForm } from "@/components/app/league-forms";
 
-/** L01 — Créer une ligue (à venir) */
-export default function Page() {
-  return <PublicStub id="L01" title="Créer une ligue" purpose="Nom de la ligue, divisions, équipes." milestone="jalon 2" back={{ href: "/", label: "Accueil" }} />;
+export const metadata = { title: "Créer une ligue · Buddy & Beer" };
+
+/** L01 — Créer une ligue */
+export default async function Page() {
+  await requireUser("/ligues/nouvelle");
+  return (
+    <AuthLayout title="Crée ta ligue" subtitle="Ensuite : tes équipes, puis l'horaire. Chaque match apparaît tout seul chez les deux équipes.">
+      <CreateLeagueForm />
+    </AuthLayout>
+  );
 }

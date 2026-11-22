@@ -34,11 +34,16 @@ test.describe("S25 / S26 — réglages et préférences", () => {
     const box = p.getByRole("checkbox", { name: "Rappels de match (t'es là?) par courriel" });
     await expect(box).toBeChecked();
     await box.uncheck();
+    await expect(p.getByText("Enregistré ✓")).toBeVisible();
     await p.reload();
     await expect(p.getByRole("checkbox", { name: "Rappels de match (t'es là?) par courriel" })).not.toBeChecked();
-    for (const c of ["notif", "texto"]) await p.getByRole("checkbox", { name: `Rappels de match (t'es là?) par ${c}` }).uncheck();
+    for (const c of ["notif", "texto"]) {
+      await p.getByRole("checkbox", { name: `Rappels de match (t'es là?) par ${c}` }).uncheck();
+      await expect(p.getByText("Enregistré ✓")).toBeVisible();
+    }
     await expect(p.getByText(/Tu ne recevras aucun rappel/)).toBeVisible();
     await p.getByRole("checkbox", { name: "Rappels de match (t'es là?) par texto" }).check();
+    await expect(p.getByText("Enregistré ✓")).toBeVisible();
     const match = await addMatch(page, base);
     await page.goto(match);
     await page.getByRole("button", { name: /Relancer/ }).click();

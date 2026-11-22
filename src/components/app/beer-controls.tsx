@@ -13,15 +13,17 @@ export function BeerOptOut({ teamId, optOut }: { teamId: string; optOut: boolean
   const router = useRouter();
   const [value, setValue] = useState(!optOut);
   const [err, setErr] = useState<string | null>(null);
-  const [, start] = useTransition();
+  const [saved, setSaved] = useState(false);
+  const [pending, start] = useTransition();
   return (
     <div className="flex flex-col gap-2">
       <Switch checked={value} label="Je fais partie de la rotation" description="Décoche si tu ne veux jamais être choisi (ex. tu ne bois pas, ou tu payes autrement)."
-        onChange={(v) => { setValue(v); start(async () => {
+        onChange={(v) => { setValue(v); setSaved(false); start(async () => {
           const r = await callAction(() => beerOptOutAction(teamId, !v));
           if (!r.ok || !r.value.ok) { setValue(!v); setErr(r.ok ? r.value.error! : failMessage(r.offline, "Ton choix n'a pas été enregistré.")); }
-          else { setErr(null); router.refresh(); }
+          else { setErr(null); setSaved(true); router.refresh(); }
         }); }} />
+      <p aria-live="polite" className="min-h-5 text-sm text-muted">{pending ? "Enregistrement…" : saved ? "Enregistré ✓" : ""}</p>
       {err && <Banner tone="danger">{err}</Banner>}
     </div>
   );

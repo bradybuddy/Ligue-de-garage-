@@ -28,6 +28,7 @@ test.describe("F06 — la tournée", () => {
     await expect(p.getByLabel("Choisir à la main")).toHaveCount(0); // pas pour une joueuse
     await p.getByRole("switch", { name: "Je fais partie de la rotation" }).click();
     await expect(p.getByRole("switch", { name: "Je fais partie de la rotation" })).toHaveAttribute("aria-checked", "false");
+    await expect(p.getByText("Enregistré ✓")).toBeVisible();
     await p.reload();
     await expect(p.getByText("(hors rotation)")).toBeVisible();
 

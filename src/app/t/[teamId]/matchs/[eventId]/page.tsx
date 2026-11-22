@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Ban, DoorOpen, MapPin, Pencil, UserPlus } from "lucide-react";
+import { Ban, DoorOpen, MapPin, Pencil, Trophy, UserPlus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getEventDetail, type RosterEntry } from "@/lib/data";
 import { orNotFound } from "@/lib/guard";
@@ -41,7 +41,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     <div className="flex flex-col gap-5">
       {open && <LiveRefresh />}
       <PageTitle title={title} back={{ href: `${base}/horaire`, label: "Horaire" }}
-        action={canManage ? <Link href={`${base}/matchs/${ev.id}/modifier`} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md border border-border-input bg-surface px-3 text-sm font-semibold hover:bg-surface-2"><Pencil aria-hidden className="size-4" />Modifier</Link> : undefined}
+        action={canManage && !ev.leagueGameId ? <Link href={`${base}/matchs/${ev.id}/modifier`} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md border border-border-input bg-surface px-3 text-sm font-semibold hover:bg-surface-2"><Pencil aria-hidden className="size-4" />Modifier</Link> : undefined}
         sub={
           <div className="flex flex-col gap-1">
             <p className="font-display text-2xl font-bold text-text first-letter:uppercase">{fmtLongDate(ev.startsAt, tz)} · {fmtTime(ev.startsAt, tz)}</p>
@@ -50,6 +50,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
           </div>
         } />
 
+      {ev.leagueGameId && <p className="-mt-3 inline-flex items-center gap-1.5 self-start rounded-sm bg-accent-soft px-2 py-1 text-xs font-bold uppercase text-on-accent-soft"><Trophy aria-hidden className="size-3.5" />Match de ligue</p>}
       {nouveau && <Banner tone="info">Match ajouté. Les joueurs recevront la question « t&apos;es là? » {team.reminderHoursBefore} h avant. Tu peux aussi les relancer tout de suite.</Banner>}
       {ev.status === "cancelled" && <Banner tone="danger"><span className="inline-flex items-center gap-1.5"><Ban aria-hidden className="size-4" />Ce match est annulé.</span></Banner>}
       {ev.status === "final" && ev.scoreUs != null && <Banner tone="info">Final : {ev.scoreUs} à {ev.scoreThem}.</Banner>}

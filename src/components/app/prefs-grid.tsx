@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Banner } from "@/components/ui/feedback";
 import { setPrefAction } from "@/app/actions/settings";
 import { callAction, failMessage } from "@/lib/client-action";
@@ -20,14 +20,25 @@ const chLabel: Record<Ch, string> = { push: "Notif", sms: "Texto", email: "Courr
 export function PrefsGrid({ prefs }: { prefs: MemberPrefs }) {
   const [off, setOff] = useState(new Set(prefs.off));
   const [err, setErr] = useState<string | null>(null);
+  const [saving, setSaving] = useState(0);
+  const [saved, setSaved] = useState(false);
   const [, start] = useTransition();
+  // Quitter la page pendant un enregistrement annulerait la requête : on avertit
+  useEffect(() => {
+    if (!saving) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [saving]);
   const toggle = (cat: PrefCategory, ch: Ch) => {
     const key = `${cat}:${ch}`;
     const enabled = off.has(key); // on le réactive s'il était coupé
     const next = new Set(off); enabled ? next.delete(key) : next.add(key); setOff(next);
+    setSaving((n) => n + 1); setSaved(false);
     start(async () => {
       const r = await callAction(() => setPrefAction(prefs.memberId, cat, ch, enabled));
-      if (!r.ok || !r.value.ok) { setOff(off); setErr(r.ok ? r.value.error! : failMessage(r.offline, "Ton choix n'a pas été enregistré.")); } else setErr(null);
+      setSaving((n) => n - 1);
+      if (!r.ok || !r.value.ok) { setOff(off); setErr(r.ok ? r.value.error! : failMessage(r.offline, "Ton choix n'a pas été enregistré.")); } else { setErr(null); setSaved(true); }
     });
   };
   const visible = rows.filter((r) => !r.who || (r.who === "manager" ? prefs.isManager : prefs.isSpare));
@@ -54,6 +65,7 @@ export function PrefsGrid({ prefs }: { prefs: MemberPrefs }) {
           </tbody>
         </table>
       </div>
+      <p aria-live="polite" className="min-h-5 text-sm text-muted">{saving ? "Enregistrement…" : saved ? "Enregistré ✓" : ""}</p>
       {noReminder && <Banner tone="warning">Tu ne recevras aucun rappel pour cette équipe. Pense à ouvrir l&apos;appli avant chaque match.</Banner>}
       {err && <Banner tone="danger">{err}</Banner>}
     </div>
