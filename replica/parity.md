@@ -1,6 +1,8 @@
 # Parité — Buddy & Beer vs BenchApp
 
-> **Mise à jour après le jalon 2 (même jour) :** parité **51,9 %** (60,4 % sans la ligue), must **20 faits, 2 partiels, 3 manquants** sur 25. Les cinq chantiers de la section 5 sont faits ; le reste du rapport décrit l'état avant le jalon 2. Il reste les 3 must de la ligue, le chat partiel (GIF pas testé) et la création d'équipe partielle (division, saison). Toujours **pas prêt à lancer**.
+> **Mise à jour après la ligue (même jour) :** parité **61,6 %**, must **24 faits, 1 partiel (chat : GIF pas testé), 0 manquant**. Il reste surtout des « should » : stats et pointage, frais, import CSV, messages privés, sondages, formation. Pas encore « prêt » selon la règle (80 % et plus) ; voir la section 2 pour la liste à jour avec `node scripts/parity.mjs`.
+>
+> **Mise à jour après le jalon 2 :** parité **51,9 %** (60,4 % sans la ligue), must **20 faits, 2 partiels, 3 manquants** sur 25. Les cinq chantiers de la section 5 sont faits ; le reste du rapport décrit l'état avant le jalon 2. Il reste les 3 must de la ligue, le chat partiel (GIF pas testé) et la création d'équipe partielle (division, saison). Toujours **pas prêt à lancer**.
 
 Date : 2026-11-22 · Build : `dc0ca4c` · Sources de l'original : pages publiques seulement (recon A à M) et les captures de la fiche App Store (K), décrites région par région. Les images ne sont pas gardées dans le dépôt.
 

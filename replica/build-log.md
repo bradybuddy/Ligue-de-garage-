@@ -91,3 +91,21 @@ Plan dans `test-plan.md`, specs dans `e2e/`, bogues dans `bugs.md`. 7 bogues rep
 Tests : 49 de bout en bout (2 passages de suite), 17 sur la base, 3 de logique. axe : 0 violation sur les 24 écrans bâtis, à 390 et 1440 px.
 
 **Écrans bâtis : 19 sur 36.** Parité : **51,9 %** (33,3 % avant). Must : **20 faits, 2 partiels, 3 manquants** (les 3 de la ligue).
+
+## Ligue (2026-11-22)
+
+| Écran | Date | État | Ce qui manque | Plus dur que prévu |
+|---|---|---|---|---|
+| L01 Accueil de ligue + création | 2026-11-22 | fait | — | — |
+| L02 Équipes et divisions | 2026-11-22 | fait | Inviter un gérant par courriel pour une équipe créée par la ligue (on partage son code) | Deux façons d'ajouter une équipe : par son code (elle existe déjà) ou en la créant |
+| L03 Horaire central | 2026-11-22 | fait | Générateur d'horaire équilibré (should, jalon 4), import CSV | **Le cœur :** un déclencheur Postgres recopie chaque match de ligue chez les 2 équipes. Rappels, spares, présences et tournée marchent donc tels quels. Un match déplacé remet ses rappels à zéro. Un 2e déclencheur empêche une équipe de modifier un match de ligue, même en SQL direct. |
+| L05 Classement | 2026-11-22 | fait | Bris d'égalité avancés (face-à-face) | La vue contourne le RLS : servie par une fonction qui vérifie l'accès |
+| L09 Message à la ligue | 2026-11-22 | fait | — | — |
+
+**Bogues trouvés en route, corrigés :**
+- **Lien de match illisible au lecteur d'écran** : « Les Castors**contre**Les Testeurs ». Les espaces venaient seulement de la marge CSS.
+- **Préférences d'avis et retrait de la tournée perdus** si on rechargeait ou quittait la page dans la seconde : la requête était annulée et rien ne le disait. Ajouts : « Enregistrement… / Enregistré ✓ » et un avertissement avant de quitter. Le test échouait 4 fois sur 8 avant, 0 sur 24 après.
+
+Tests : **50 de bout en bout, 3 passages de suite sans échec**, 19 sur la base, 3 de logique. Les données de démo (`npm run db:seed`) incluent maintenant une ligue de 5 équipes en 2 divisions.
+
+**Écrans bâtis : 24 sur 36.** Parité : **61,6 %**. Must : **24 faits, 1 partiel** (chat : GIF pas testé), **0 manquant**.

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, LogOut } from "lucide-react";
+import { Trophy, LogOut, Users } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getLeagueOverview } from "@/lib/data";
 import { orNotFound } from "@/lib/guard";
@@ -21,7 +21,9 @@ export default async function LeagueLayout({ children, params }: { children: Rea
             <span className="truncate font-display text-xl font-bold">{league.name}</span>
           </Link>
           <div className="flex items-center gap-1">
-            <Link href="/equipes" className="inline-flex h-11 items-center rounded-md px-3 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-text">Mes équipes</Link>
+            <Link href="/equipes" aria-label="Mes équipes et ligues" className="inline-flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-text">
+              <Users aria-hidden className="size-4" /><span className="hidden sm:inline">Mes équipes</span>
+            </Link>
             <form action={signOutAction}>
               <button type="submit" aria-label="Déconnexion" className="inline-flex size-11 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-text"><LogOut aria-hidden className="size-4" /></button>
             </form>

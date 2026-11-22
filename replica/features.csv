@@ -1,7 +1,7 @@
 feature,area,priority,original,clone,notes
 Création de compte et connexion,Compte,must,yes,yes,"S02 | clone : Supabase Auth : vérification du courriel, mot de passe oublié, déconnexion partout, suppression du compte"
 Rejoindre une équipe par code ou lien,Compte,must,yes,yes,S03 | clone : /j/CODE et /rejoindre ; entre comme régulier
-Créer une équipe,Équipe,must,yes,partial,"S04 | clone : S04 : nom, sport, max de joueurs ; division et saison plus tard"
+Créer une équipe,Équipe,must,yes,yes,"S04 | clone : S04 ; la division vient de la ligue (L02), la saison est créée automatiquement"
 Classes de joueurs (régulier/spare/spectateur/staff/vacances/blessé/suspendu),Alignement,must,yes,yes,S11-S12; source I | clone : 7 classes ; absents exclus des rappels et listés à part sur S07
 Rôles gérant / adjoint,Alignement,must,yes,yes,E | clone : droits vérifiés dans la couche de données (miroir des RLS)
 Importer l'alignement CSV/Excel,Alignement,should,yes,no,S13
@@ -51,12 +51,12 @@ Renonciation (waiver) signée dans l'appli,Finances,could,PRO,no,C
 Covoiturage,Extras,could,yes,no,E
 Tâches/bénévoles,Extras,could,yes,no,E
 Saisons (démarrer/archiver),Équipe,should,yes,no,E
-Ligue : équipes par division,Ligue,must,League,no,L02
-Ligue : diffusion à toute la ligue,Ligue,must,League,no,L09
-Ligue : horaire central,Ligue,must,League,no,L03
+Ligue : équipes par division,Ligue,must,League,yes,L02 | clone : L02 ; rattacher par code ou créer l'équipe ; divisions modifiables
+Ligue : diffusion à toute la ligue,Ligue,must,League,yes,L09 | clone : L09 ; tous les joueurs ou gérants seulement ; 3 par jour max
+Ligue : horaire central,Ligue,must,League,yes,"L03 | clone : L03 ; chaque match recopié par déclencheur chez les 2 équipes (rappels, spares, tournée inclus) ; l'équipe ne peut pas le modifier"
 Ligue : générateur d'horaire équilibré,Ligue,should,League,no,L03; dur
 Ligue : arbitres et officiels,Ligue,should,League,no,L04
-Ligue : classement auto,Ligue,should,League,no,L05
+Ligue : classement auto,Ligue,should,League,yes,"L05 | clone : L05 ; V-D-N-DP, 2/1 pts, par division"
 Ligue : meneurs,Ligue,could,League,no,L06
 Ligue : site public,Ligue,could,League,no,L08
 Ligue : inscriptions + bassin de joueurs,Ligue,could,League,no,L07

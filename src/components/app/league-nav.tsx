@@ -10,7 +10,7 @@ export function LeagueNav({ base, isAdmin }: { base: string; isAdmin: boolean })
     { href: `${base}/equipes`, label: "Équipes" },
     { href: `${base}/horaire`, label: "Horaire" },
     { href: `${base}/classement`, label: "Classement" },
-    ...(isAdmin ? [{ href: `${base}/diffusion`, label: "Message à la ligue" }] : []),
+    ...(isAdmin ? [{ href: `${base}/diffusion`, label: "Message" }] : []),
   ];
   return (
     <nav aria-label="Navigation de la ligue" className="-mx-4 overflow-x-auto border-b border-border px-4">

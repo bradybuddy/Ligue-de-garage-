@@ -85,7 +85,7 @@ test.describe("F09 — le commissaire monte la saison", () => {
 
     // Un gérant d'équipe voit la ligue en lecture seule ; un inconnu n'y a pas accès
     await page.goto(league);
-    await expect(page.getByRole("navigation", { name: "Navigation de la ligue" }).getByRole("link", { name: "Message à la ligue" })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Navigation de la ligue" }).getByRole("link", { name: "Message" })).toHaveCount(0);
     await page.goto(`${league}/diffusion`);
     await expect(page.getByText(/Seuls les administrateurs de la ligue/)).toBeVisible();
     const x = await (await browser.newContext()).newPage();

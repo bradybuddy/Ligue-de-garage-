@@ -18,6 +18,7 @@ async function user(display_name, email, phone) {
 
 try {
   if ((await sql`select 1 from teams where invite_code = 'BUDDY4'`).length) { console.log("Déjà peuplée."); process.exit(0); }
+  await sql`delete from leagues where name = 'Ligue de garage du Plateau'`;
   const marc = await user("Marc Lapointe", "marc@exemple.ca", "+15145550100");
   const sophie = await user("Sophie Gagnon", "sophie@exemple.ca", "+15145550101");
   const karim = await user("Karim Haddad", "karim@exemple.ca", "+15145550102");
@@ -55,6 +56,28 @@ try {
              v, o, case when w < 0 then 'final' else 'scheduled' end, case when w < 0 then 6 end, case when w < 0 then 4 end, case when w < 0 then now() end
         from (values (-1, 'Aréna Saint-Michel', 'Les Pingouins'), (1, 'Aréna Michel-Normandin, glace 2', 'Les Castors'),
                      (2, 'Centre Étienne-Desmarteau', 'Les Zambonis'), (3, 'Aréna Maurice-Richard', 'Les Moustaches')) as x(w, v, o)`;
+  });
+  // Une ligue : Marc en est aussi le commissaire
+  await sql.begin(async (tx) => {
+    await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: marc, role: "authenticated" })}, true)`;
+    const [{ id: league }] = await tx`select create_league('Ligue de garage du Plateau') as id`;
+    const [a] = await tx`insert into divisions (league_id, name, sort_order) values (${league}, 'A', 0) returning id`;
+    const [b] = await tx`insert into divisions (league_id, name, sort_order) values (${league}, 'B', 1) returning id`;
+    await tx`update teams set league_id = ${league}, division_id = ${a.id} where invite_code = 'BUDDY4'`;
+    const mk = async (name, div) => (await tx`select create_league_team(${league}, ${name}, ${div}) as id`)[0].id;
+    const t = { buddies: (await tx`select id from teams where invite_code = 'BUDDY4'`)[0].id, zambonis: await mk("Les Zambonis", a.id),
+      pingouins: await mk("Les Pingouins", a.id), castors: await mk("Les Castors du lundi", b.id), moustaches: await mk("Les Moustaches", b.id) };
+    const game = (w, home, away, venue, hs = null, as = null) => tx`
+      insert into league_games (league_id, home_team_id, away_team_id, starts_at, venue, status, home_score, away_score)
+      values (${league}, ${home}, ${away}, ((date_trunc('week', now() at time zone 'America/Toronto') + interval '5 days' + (${w} || ' weeks')::interval)::date + time '20:00') at time zone 'America/Toronto',
+              ${venue}, ${hs === null ? "scheduled" : "final"}, ${hs}, ${as})`;
+    await game(-2, t.zambonis, t.pingouins, "Aréna Saint-Michel", 3, 2);
+    await game(-2, t.castors, t.moustaches, "Aréna Maurice-Richard", 1, 4);
+    await game(-1, t.pingouins, t.buddies, "Aréna Saint-Michel", 2, 5);
+    await game(-1, t.moustaches, t.castors, "Aréna Maurice-Richard", 2, 2);
+    await game(1, t.buddies, t.zambonis, "Aréna Michel-Normandin");
+    await game(1, t.castors, t.moustaches, "Centre Étienne-Desmarteau");
+    await game(2, t.zambonis, t.pingouins, "Aréna Saint-Michel");
   });
   console.log(`Démo prête. Comptes : marc@exemple.ca (gérant), sophie@exemple.ca, karim@exemple.ca — mot de passe ${PASSWORD}`);
 } catch (e) {
