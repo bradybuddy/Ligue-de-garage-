@@ -57,7 +57,11 @@ describe("Postgres + RLS", { skip }, () => {
   });
 
   beforeEach(async () => {
-    await admin`truncate teams, leagues, outbox, inbound_sms, processed_webhooks, push_subscriptions cascade`;
+    // Une livraison du test précédent peut encore tourner en arrière-plan : on réessaie si le TRUNCATE s'interbloque avec elle
+    for (let i = 0; ; i++) {
+      try { await admin`truncate teams, leagues, outbox, inbound_sms, processed_webhooks, push_subscriptions cascade`; break; }
+      catch (e) { if ((e as { code?: string }).code !== "40P01" || i > 10) throw e; await new Promise((r) => setTimeout(r, 200)); }
+    }
     await admin`delete from auth.users where email like '%@test.local'`;
     marc = await user("Marc Gérant", "marc@test.local");
     sophie = await user("Sophie Joueuse", "sophie@test.local");
@@ -264,5 +268,42 @@ describe("Postgres + RLS", { skip }, () => {
     assert.ok(notices.every((n) => n.status === "sent"));
     assert.match(await data.handleInboundSms("4385558888", "Y", "SM-first-1"), /t'es IN/);       // Léa : première
     assert.match(await data.handleInboundSms("4385559999", "Y", "SM-first-2"), /liste d'attente/); // Bob : trop tard
+  });
+
+  test("chat : membres seulement, GIF de sources permises, réactions avec tous les noms, supprimer le sien", async () => {
+    const id = await data.postMessage(marc, teamId, { body: "Qui apporte les rondelles?" });
+    await assert.rejects(data.getTeamChat(stranger, teamId), /ne fais pas partie/);
+    await assert.rejects(data.postMessage(stranger, teamId, { body: "spam" }), /ne fais pas partie/);
+    await assert.rejects(data.postMessage(sophie, teamId, { gifUrl: "https://evil.example.com/pixel.gif" }), /source permise/);
+    await data.postMessage(sophie, teamId, { gifUrl: "https://media2.giphy.com/media/abc/200w.gif" });
+    await data.toggleReaction(sophie, teamId, id, "👍");
+    await data.toggleReaction(marc, teamId, id, "👍");
+    await assert.rejects(data.toggleReaction(sophie, teamId, id, "<script>"), /Réaction invalide/);
+    const msgs = await data.getTeamChat(sophie, teamId);
+    assert.equal(msgs.length, 2);
+    assert.deepEqual(msgs[0]!.reactions, [{ emoji: "👍", names: ["Moi", "Marc Gérant"], mine: true }]);
+    await assert.rejects(data.deleteMessage(sophie, id), /propres messages/);
+    await data.deleteMessage(marc, id);
+    assert.equal((await data.getTeamChat(sophie, teamId))[0]!.deleted, true);
+    const [r] = await asRole(stranger, `select count(*)::int as n from messages`);
+    assert.equal(r!.n, 0);
+    // Notif push aux coéquipiers avec un compte, jamais de texto ni de courriel pour le chat
+    await drained(["chat"]);
+    const ch = await admin`select distinct channel, status from outbox where category = 'chat'`;
+    assert.deepEqual(ch.map((c) => `${c.channel}/${c.status}`), ["push/skipped"]); // personne n'a activé les notifs : rien ne part, surtout pas par courriel
+  });
+
+  test("diffusion : gérant seulement, canaux respectés, 5 par jour maximum", async () => {
+    await assert.rejects(data.sendBroadcast(sophie, teamId, { body: "x", channels: ["sms"], audience: ["regular"] }), /gérant/);
+    const n = await data.sendBroadcast(marc, teamId, { body: "Party samedi chez Max!", channels: ["sms", "email"], audience: ["regular"] });
+    assert.equal(n, 3); // Marc (courriel), Sophie (courriel), Bob (texto) ; Léa est spare
+    const rows = await admin`select channel, to_address from outbox where category = 'broadcast' order by channel, to_address`;
+    assert.ok(rows.some((r) => r.channel === "sms" && r.to_address === "+14385559999"));
+    assert.ok(!rows.some((r) => r.to_address === "+14385558888"), "la spare n'est pas visée");
+    for (let i = 0; i < 4; i++) await data.sendBroadcast(marc, teamId, { body: `annonce ${i}`, channels: ["push"], audience: ["regular"] });
+    await assert.rejects(data.sendBroadcast(marc, teamId, { body: "une de trop", channels: ["push"], audience: ["regular"] }), /Maximum 5/);
+    const hist = await data.listBroadcasts(sophie, teamId);
+    assert.equal(hist.length, 5);
+    assert.equal(hist.at(-1)!.recipients, 3);
   });
 });

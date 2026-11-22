@@ -14,6 +14,7 @@ import { unsubscribeToken } from "../unsubscribe";
 import { utcToZonedParts, zonedToUtc } from "../time";
 
 const MAX_ATTEMPTS = 4;
+const PUSH_FALLBACK = new Set(["manager_alert", "waitlist", "beer"]);
 const QUIET_START = 22, QUIET_END = 8; // pas de texto non urgent entre 22 h et 8 h (heure de l'équipe)
 
 interface Row {
@@ -62,7 +63,9 @@ async function deliverOne(row: Row): Promise<"sent" | "skipped" | "deferred" | "
     ? await asService((tx) => tx<{ id: string; endpoint: string; p256dh: string; auth: string }[]>`select id, endpoint, p256dh, auth from push_subscriptions where user_id = ${ctx.userId}`)
     : [];
   if (channel === "push" && !subs.length) {
-    if (row.category === "reminder") return finish(row, "skipped", "pas d'abonnement push (texto/courriel déjà en file)");
+    // Repli vers texto/courriel seulement pour les avis qui comptent. Jamais pour le chat ni une diffusion « notif » :
+    // sinon chaque message du chat partirait par courriel à toute l'équipe (la plainte n° 1 contre l'original).
+    if (!PUSH_FALLBACK.has(row.category)) return finish(row, "skipped", "pas d'abonnement push (pas de repli pour cette catégorie)");
     channel = ctx.phone && ctx.smsOptIn && !ctx.smsOptedOutAt ? "sms" : ctx.email ? "email" : "push";
     if (channel === "push") return finish(row, "skipped", "aucun canal joignable");
   }

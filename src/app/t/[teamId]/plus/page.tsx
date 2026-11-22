@@ -17,7 +17,8 @@ export default async function Page({ params }: { params: Promise<{ teamId: strin
     { href: `${b}/stats`, label: "Stats", Icon: BarChart3 },
     { href: `${b}/bulletins`, label: "Bulletins et sondages", Icon: Vote },
     { href: `${b}/finances`, label: "Frais", Icon: CircleDollarSign },
-    ...(manager ? [{ href: `${b}/diffusion`, label: "Message à toute l'équipe", Icon: Megaphone }, { href: `${b}/reglages`, label: "Réglages de l'équipe", Icon: Settings }] : []),
+    { href: `${b}/diffusion`, label: manager ? "Message à toute l'équipe" : "Messages du gérant", Icon: Megaphone },
+    ...(manager ? [{ href: `${b}/reglages`, label: "Réglages de l'équipe", Icon: Settings }] : []),
     { href: "/compte", label: "Mon compte et mes avis", Icon: UserRound },
   ];
   return (

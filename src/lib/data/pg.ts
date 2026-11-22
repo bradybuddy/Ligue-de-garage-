@@ -14,7 +14,7 @@ import { deliverOutbox } from "./delivery";
 import {
   DomainError, type Attendance, type AttendanceStatus, type EventDetail, type InboundSms, type Member, type OutboxItem, type PlayerClass,
   type ResponseSource, type RosterEntry, type Sport, type Team, type TeamEvent, type User,
-  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview,
+  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview, type ChatMessage, type BroadcastSummary,
 } from "./types";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -782,4 +782,139 @@ export async function setBeerTurn(actor: Actor, eventId: string, memberId: strin
   });
   void deliverOutbox({ limit: 20 }).catch((e) => console.error("livraison", e));
   return chosen;
+}
+
+// ───────────── La chambre : chat d'équipe (S16) ─────────────
+const GIF_HOSTS = /^https:\/\/(media\d?\.giphy\.com|i\.giphy\.com|media\.tenor\.com)\//;
+
+async function teamThread(tx: Tx, teamId: string): Promise<string> {
+  const [t] = await tx<{ id: string }[]>`select id from threads where team_id = ${teamId} and kind = 'team'`;
+  if (!t) throw new DomainError("Équipe introuvable.", "not_found");
+  return t.id;
+}
+
+export async function getTeamChat(userId: string, teamId: string, limit = 60): Promise<ChatMessage[]> {
+  return asUser(userId, async (tx) => {
+    await assertMember(tx, teamId);
+    const thread = await teamThread(tx, teamId);
+    const rows = await tx<{ id: string; authorMemberId: string | null; authorName: string | null; authorUser: string | null; body: string | null; gifUrl: string | null; createdAt: string; deletedAt: string | null }[]>`
+      select * from (
+        select x.id, x.author_member_id, m.display_name as author_name, m.user_id as author_user, x.body, x.gif_url, x.created_at, x.deleted_at
+          from messages x left join members m on m.id = x.author_member_id
+         where x.thread_id = ${thread} order by x.created_at desc limit ${limit}) t order by created_at`;
+    const reactions = rows.length ? await tx<{ messageId: string; emoji: string; name: string; userId: string | null }[]>`
+      select r.message_id, r.emoji, m.display_name as name, m.user_id from message_reactions r join members m on m.id = r.member_id
+       where r.message_id in ${tx(rows.map((r) => r.id))} order by r.created_at` : [];
+    return rows.map((r) => {
+      const mine = r.authorUser === userId;
+      const byEmoji = new Map<string, { names: string[]; mine: boolean }>();
+      for (const x of reactions.filter((x) => x.messageId === r.id)) {
+        const e = byEmoji.get(x.emoji) ?? { names: [], mine: false };
+        e.names.push(x.userId === userId ? "Moi" : x.name);
+        e.mine ||= x.userId === userId;
+        byEmoji.set(x.emoji, e);
+      }
+      return {
+        id: r.id, authorId: r.authorMemberId, authorName: r.authorName ?? "Ancien joueur", mine, createdAt: r.createdAt, deleted: !!r.deletedAt,
+        body: r.deletedAt ? null : r.body, gifUrl: r.deletedAt ? null : r.gifUrl,
+        reactions: [...byEmoji].map(([emoji, v]) => ({ emoji, ...v })),
+      };
+    });
+  });
+}
+
+export async function postMessage(userId: string, teamId: string, input: { body?: string | null; gifUrl?: string | null }): Promise<string> {
+  const body = input.body?.trim().slice(0, 4000) || null;
+  const gifUrl = input.gifUrl?.trim() || null;
+  if (!body && !gifUrl) throw new DomainError("Le message est vide.");
+  if (gifUrl && !GIF_HOSTS.test(gifUrl)) throw new DomainError("Ce GIF ne vient pas d'une source permise.");
+  const { id, me, thread } = await asUser(userId, async (tx) => {
+    await assertMember(tx, teamId);
+    const thread = await teamThread(tx, teamId);
+    const [me] = await tx<Member[]>`select * from members where team_id = ${teamId} and user_id = ${userId} and left_at is null`;
+    const [m] = await tx<{ id: string }[]>`insert into messages (thread_id, author_member_id, body, gif_url) values (${thread}, ${me!.id}, ${body}, ${gifUrl}) returning id`;
+    return { id: m!.id, me: me!, thread };
+  });
+  // Notif aux coéquipiers qui ont un compte (push seulement : jamais de courriel ni de texto pour le chat)
+  await asService(async (tx) => {
+    await tx`update threads set last_message_at = now() where id = ${thread}`;
+    const [team] = await tx<Team[]>`select * from teams where id = ${teamId}`;
+    const others = await tx<{ id: string }[]>`select id from members where team_id = ${teamId} and left_at is null and user_id is not null and id <> ${me.id}`;
+    const preview = body ? (body.length > 80 ? `${body.slice(0, 79)}…` : body) : "a envoyé un GIF";
+    for (const o of others) {
+      await enqueue(tx, { memberId: o.id, channel: "push", category: "chat", template: "chat", to: null, body: `${me.displayName} : ${preview}`,
+        dedupeKey: `chat:${id}:${o.id}`, payload: { url: `/t/${team!.id}/chambre` } });
+    }
+  });
+  void deliverOutbox({ limit: 100 }).catch((e) => console.error("livraison", e));
+  return id;
+}
+
+const EMOJIS = new Set(["👍", "🔥", "😂", "🍺", "🏒", "❤️", "😮", "😢"]);
+
+export async function toggleReaction(userId: string, teamId: string, messageId: string, emoji: string): Promise<void> {
+  if (!EMOJIS.has(emoji) || !isUuid(messageId)) throw new DomainError("Réaction invalide.");
+  await asUser(userId, async (tx) => {
+    const [me] = await tx<Member[]>`select * from members where team_id = ${teamId} and user_id = ${userId} and left_at is null`;
+    if (!me) throw new DomainError("Tu ne fais pas partie de cette équipe.", "forbidden");
+    const del = await tx`delete from message_reactions where message_id = ${messageId} and member_id = ${me.id} and emoji = ${emoji} returning id`;
+    if (!del.length) await tx`insert into message_reactions (message_id, member_id, emoji) values (${messageId}, ${me.id}, ${emoji})`; // RLS : message visible requis
+  });
+}
+
+export async function deleteMessage(userId: string, messageId: string): Promise<void> {
+  if (!isUuid(messageId)) throw new DomainError("Introuvable.", "not_found");
+  const r = await asUser(userId, (tx) => tx`update messages set deleted_at = now() where id = ${messageId} and deleted_at is null returning id`);
+  if (!r.length) throw new DomainError("Tu ne peux supprimer que tes propres messages.", "forbidden");
+}
+
+// ───────────── Message à toute l'équipe (S18) ─────────────
+const BROADCASTS_PER_DAY = 5;
+
+export async function sendBroadcast(userId: string, teamId: string, input: { subject?: string | null; body: string; channels: Channel[]; audience: PlayerClass[] }): Promise<number> {
+  const body = input.body.trim();
+  if (!body) throw new DomainError("Le message est vide.");
+  if (!input.channels.length) throw new DomainError("Choisis au moins un canal.");
+  if (!input.audience.length) throw new DomainError("Choisis à qui l'envoyer.");
+  const id = await asUser(userId, async (tx) => {
+    await assertManager(tx, teamId);
+    const [{ n }] = await tx<{ n: number }[]>`select count(*)::int as n from broadcasts where team_id = ${teamId} and created_at > now() - interval '24 hours'`;
+    if (n >= BROADCASTS_PER_DAY) throw new DomainError(`Maximum ${BROADCASTS_PER_DAY} messages à toute l'équipe par jour. Utilise la chambre pour le reste.`, "conflict");
+    const [b] = await tx<{ id: string }[]>`
+      insert into broadcasts (team_id, author_id, channels, audience, subject, body, sent_at)
+      values (${teamId}, ${userId}, ${input.channels}, ${input.audience}, ${input.subject?.trim() || null}, ${body}, now()) returning id`;
+    return b!.id;
+  });
+  const n = await asService(async (tx) => {
+    const [team] = await tx<Team[]>`select * from teams where id = ${teamId}`;
+    const [author] = await tx<{ displayName: string }[]>`select display_name from profiles where id = ${userId}`;
+    const members = await tx<Member[]>`select * from members where team_id = ${teamId} and left_at is null and class in ${tx(input.audience)}`;
+    const sms = `${team!.name} — ${author?.displayName ?? "le gérant"} : ${body}`.slice(0, 600);
+    let reached = 0;
+    for (const m of members) {
+      let ok = false;
+      if (input.channels.includes("push") && m.userId) ok = (await enqueue(tx, { memberId: m.id, channel: "push", category: "broadcast", template: "broadcast", to: null, body: sms, dedupeKey: `bc:${id}:${m.id}:push`, payload: { url: `/t/${teamId}/diffusion` } })) || ok;
+      if (input.channels.includes("sms") && m.phone && m.smsOptIn) ok = (await enqueue(tx, { memberId: m.id, channel: "sms", category: "broadcast", template: "broadcast", to: m.phone, body: sms, dedupeKey: `bc:${id}:${m.id}:sms` })) || ok;
+      if (input.channels.includes("email") && m.email) ok = (await enqueue(tx, { memberId: m.id, channel: "email", category: "broadcast", template: "broadcast", to: m.email,
+        subject: input.subject?.trim() || `${team!.name} : un mot de ${author?.displayName ?? "ton gérant"}`, body: `${body}\n\n— ${author?.displayName ?? ""}, ${team!.name}`, dedupeKey: `bc:${id}:${m.id}:email` })) || ok;
+      if (ok) reached++;
+    }
+    return reached;
+  });
+  void deliverOutbox({ limit: 300 }).catch((e) => console.error("livraison", e));
+  return n;
+}
+
+export async function listBroadcasts(userId: string, teamId: string): Promise<BroadcastSummary[]> {
+  return asUser(userId, async (tx) => {
+    await assertMember(tx, teamId);
+    const rows = await tx<(BroadcastSummary & { authorId: string | null })[]>`
+      select b.id, b.subject, b.body, b.channels, b.audience, b.sent_at, b.author_id, p.display_name as author_name
+        from broadcasts b left join profiles p on p.id = b.author_id
+       where b.team_id = ${teamId} order by b.created_at desc limit 20`;
+    const counts = rows.length ? await asService((s) => s<{ id: string; n: number }[]>`
+      select split_part(dedupe_key, ':', 2) as id, count(distinct member_id)::int as n from outbox
+       where dedupe_key like 'bc:%' and split_part(dedupe_key, ':', 2) in ${s(rows.map((r) => r.id))} group by 1`) : [];
+    return rows.map(({ authorId: _a, ...r }) => ({ ...r, recipients: counts.find((c) => c.id === r.id)?.n ?? 0 }));
+  });
 }

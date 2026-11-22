@@ -218,3 +218,16 @@ export interface BeerOverview {
   upcoming: { event: TeamEvent; memberId: string | null; memberName: string | null; mode: "auto" | "manual" | null; inPlayers: { id: string; name: string }[] }[];
   standings: { memberId: string; name: string; count: number; optOut: boolean }[];
 }
+
+export interface ChatMessage {
+  id: string;
+  authorId: string | null;
+  authorName: string;
+  mine: boolean;
+  body: string | null;
+  gifUrl: string | null;
+  createdAt: string;
+  deleted: boolean;
+  reactions: { emoji: string; names: string[]; mine: boolean }[];
+}
+export interface BroadcastSummary { id: string; subject: string | null; body: string; channels: Channel[]; audience: PlayerClass[]; sentAt: string | null; authorName: string | null; recipients: number }
