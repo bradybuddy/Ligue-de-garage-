@@ -1,10 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Rafraîchit la session Supabase (cookies) à chaque requête de page. Rien à faire en mode démo. */
+/** Rafraîchit la session Supabase (cookies) à chaque requête de page, et note le chemin demandé. */
 export async function proxy(request: NextRequest) {
+  // Le chemin demandé, pour revenir à la bonne page après la connexion (les layouts ne le connaissent pas)
+  request.headers.set("x-bb-path", request.nextUrl.pathname + request.nextUrl.search);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return NextResponse.next();
+  if (!url || !key) return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
     cookies: {

@@ -2,7 +2,7 @@
 // sinon cookie signé de démo (développement seulement).
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getUser, type User } from "./data";
 import { supabaseAuthEnabled } from "./supabase/config";
@@ -51,6 +51,11 @@ export async function currentUser(): Promise<User | null> {
 
 export async function requireUser(next?: string): Promise<User> {
   const u = await currentUser();
-  if (!u) redirect(`/connexion${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+  if (!u) {
+    // Le chemin réellement demandé (noté par le proxy) l'emporte : un layout ne connaît que son propre segment
+    const asked = (await headers()).get("x-bb-path");
+    const target = asked && asked.startsWith("/") && !asked.startsWith("//") && !asked.startsWith("/_next") ? asked : next;
+    redirect(`/connexion${target ? `?next=${encodeURIComponent(target)}` : ""}`);
+  }
   return u;
 }
