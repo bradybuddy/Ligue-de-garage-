@@ -1,6 +1,6 @@
 feature,area,priority,original,clone,notes
 Création de compte et connexion,Compte,must,yes,yes,"S02 | clone : Supabase Auth : vérification du courriel, mot de passe oublié, déconnexion partout, suppression du compte"
-Rejoindre une équipe par code ou lien,Compte,must,yes,no,S03
+Rejoindre une équipe par code ou lien,Compte,must,yes,yes,S03 | clone : /j/CODE et /rejoindre ; entre comme régulier
 Créer une équipe,Équipe,must,yes,partial,"S04 | clone : S04 : nom, sport, max de joueurs ; division et saison plus tard"
 Classes de joueurs (régulier/spare/spectateur/staff/vacances/blessé/suspendu),Alignement,must,yes,yes,S11-S12; source I | clone : 7 classes ; absents exclus des rappels et listés à part sur S07
 Rôles gérant / adjoint,Alignement,must,yes,yes,E | clone : droits vérifiés dans la couche de données (miroir des RLS)

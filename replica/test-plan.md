@@ -1,6 +1,6 @@
 # Plan de test : Buddy & Beer
 
-Build : `acaefea` (+ correctifs de cette passe) · Date : 2026-11-22 · Env : local, pile Supabase (`npm run db:up`), données de démo + données créées par chaque test · Navigateur : Chromium 1243 (Playwright 1.63), 390 × 844 et 1440 × 900
+Build : `d6c3332` (départ `acaefea`, 7 bogues corrigés pendant la passe) · Date : 2026-11-22 · Env : local, pile Supabase (`npm run db:up`), données de démo + données créées par chaque test · Navigateur : Chromium 1243 (Playwright 1.63), 390 × 844 et 1440 × 900
 
 On teste **notre clone**. Rien n'est envoyé vers BenchApp.
 
@@ -19,6 +19,8 @@ Colonne « auto » : `e2e` = spec Playwright dans `e2e/` ; `db` = `tests/pg.test
 | F01-E6 | limite : joueur qui a déjà un compte | ajouter un joueur avec le courriel d'un compte vérifié | sa fiche est reliée, il voit l'équipe | db | |
 | F01-E7 | limite : compte non vérifié avec le même courriel | | pas relié avant la vérification | db | |
 | F01-E8 | limite : rejoindre par code ou lien | ouvrir `/j/CODE`, se connecter | entre dans l'équipe comme spare | e2e | |
+| F01-E9 | limite : joueur avec courriel seulement | nom + courriel, sans cellulaire | ajouté | e2e | réussi (après BUG-002) |
+| F01-E10 | limite : invitation sans compte | `/j/CODE` → inscription → lien du courriel | revient à l'invitation, rejoint l'équipe | e2e | réussi (après BUG-007) |
 | F01-N1 | négatif : doublon | même cellulaire deux fois | message « Ce numéro est déjà dans l'équipe (Nom) » | e2e | |
 | F01-N2 | négatif : champs invalides | nom vide, cellulaire « 555 », courriel « abc » | un message par champ, rien d'enregistré | e2e | |
 | F01-N3 | négatif : mauvais mot de passe | | « Courriel ou mot de passe incorrect. » | e2e | |
@@ -97,3 +99,16 @@ Colonne « auto » : `e2e` = spec Playwright dans `e2e/` ; `db` = `tests/pg.test
 | X-M1 | manuel : notifs push sur un vrai iPhone et Android | | notif reçue, ouvre le match | manuel | à faire (appareil) |
 | X-M2 | manuel : vrai texto Twilio et vrai courriel Resend | | reçus, réponse Y traitée | manuel | à faire (clés) |
 | X-M3 | manuel : lecteur d'écran (VoiceOver) sur S07 | | IN/OUT annoncés comme groupe radio, statut lu | manuel | à faire |
+
+## Bilan
+
+| | |
+|---|---|
+| Cas au plan | 63 |
+| Exécutés automatiquement | 46 (37 e2e, 8 unit, 11 db ; certains cas sont couverts à deux niveaux) |
+| Réussis | 46 |
+| Échoués | 0 (7 avant correctifs, voir `bugs.md`) |
+| Bloqués (pas bâtis) | F01-N5, F03, F04-E2, F05, F06 écran, F07 à F10 |
+| Manuels à faire | X-M1 (push sur appareil), X-M2 (vrais Twilio et Resend), X-M3 (VoiceOver) |
+
+Lancer : `npm run db:up && npm run build && npm run e2e` · `npm test` · `TEST_DATABASE_URL=… npm run test:db` (efface la base visée).

@@ -67,3 +67,7 @@ La couche de démo est remplacée par Postgres/Supabase quand `DATABASE_URL` est
 - confirmation de courriel (`/auth/confirm`) ;
 - désabonnement ;
 - S26 Mon compte, partiel : notifs de l'appareil, sessions, suppression.
+
+## Passe de test (2026-11-22)
+
+Plan dans `test-plan.md`, specs dans `e2e/`, bogues dans `bugs.md`. 7 bogues reproduits et corrigés (2 S2, 4 S3, 1 S4), chacun avec son test. S03 (rejoindre par lien ou code) est maintenant bâti : c'était BUG-003.
