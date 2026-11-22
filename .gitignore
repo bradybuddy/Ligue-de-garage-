@@ -7,3 +7,5 @@ next-env.d.ts
 !.env.example
 .vercel
 e2e/.results/
+# Captures publiques de l'original : comparaison de structure seulement, jamais dans le dépôt
+replica/screens/

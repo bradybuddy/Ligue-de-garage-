@@ -12,7 +12,7 @@ Horaire : ajouter/modifier/supprimer un match,Horaire,must,yes,yes,"S06-S08 | cl
 Importer l'horaire CSV/Excel,Horaire,should,yes,no,S09
 Synchro auto de l'horaire de la ligue (iCal),Horaire,should,PRO,no,C
 Abonnement calendrier (ICS) pour le joueur,Horaire,must,yes,no,F; bogue d'heure avancée à éviter
-Assigner les chambres,Horaire,could,yes,no,E
+Assigner les chambres,Horaire,could,yes,yes,"E | clone : chambre domicile/visiteurs sur S08, affichées sur S07"
 Réponse IN/OUT dans l'appli,Présences,must,yes,yes,"F02 cœur | clone : S05, S07 ; clavier OK ; liste d'attente si complet"
 Réponse IN/OUT par courriel,Présences,must,yes,yes,"C | clone : Resend branché, testé de bout en bout avec Mailpit ; à valider avec la vraie clé"
 Réponse IN/OUT par texto (Y/N),Présences,must,PRO,yes,"C; inclus chez nous | clone : webhook Twilio signé, testé de bout en bout ; vrai numéro à brancher"
@@ -30,7 +30,7 @@ Frais de spare,Spares,should,yes,no,E
 Payer pour jouer (carte avant IN),Spares,could,PRO,no,C
 Formation / trios,Match,should,yes,no,S10
 Équipes Foncé/Pâle au hasard,Match,could,yes,no,E
-Rotation des bières auto,Bière,must,yes,no,J; notre identité Buddy & Beer
+Rotation des bières auto,Bière,must,yes,partial,J; notre identité Buddy & Beer | clone : choix auto 24 h avant (pick_beer) + avis « c'est ta tournée » ; aucun écran ne le montre encore (S22)
 Compteur de consommations,Bière,could,yes,no,J
 Se retirer de la rotation,Bière,must,yes,no,J
 Chat d'équipe + GIF + réactions,Communication,must,yes,no,S16; bogue de réactions à éviter
@@ -62,5 +62,5 @@ Ligue : site public,Ligue,could,League,no,L08
 Ligue : inscriptions + bassin de joueurs,Ligue,could,League,no,L07
 Interface en français (Québec) d'abord,Différenciateur,must,unclear,yes,à nous | clone : tous les textes écrits à neuf en fr-CA
 Zéro pub,Différenciateur,must,no,yes,BenchApp a des pubs en gratuit (C; F BenchApp Plus)
-Nom/logo/couleurs/textes BenchApp,Hors-portée,skip,yes,no,marque de BenchApp
-Réseau de 60 000 équipes,Hors-portée,skip,yes,no,se bâtit pas en copiant
+Nom/logo/couleurs/textes BenchApp,Hors-portée,skip,yes,skip,marque de BenchApp
+Réseau de 60 000 équipes,Hors-portée,skip,yes,skip,se bâtit pas en copiant
