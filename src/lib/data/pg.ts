@@ -558,3 +558,19 @@ export async function recordSmsStatus(providerMessageId: string, status: string,
   await asService((tx) => tx`update outbox set status = 'failed', error = ${`twilio ${status} ${errorCode ?? ""}`.trim()}
                               where provider_message_id = ${providerMessageId}`);
 }
+
+// ───────────── Rejoindre par code (S03) ─────────────
+export async function getInvitePreview(code: string): Promise<{ teamId: string; name: string; sport: string; players: number } | null> {
+  if (!/^[A-Z0-9]{4,10}$/i.test(code.trim())) return null;
+  const [r] = await asService((tx) => tx<{ teamId: string; name: string; sport: string; players: number }[]>`select * from invite_preview(${code})`);
+  return r ?? null;
+}
+
+export async function joinTeam(userId: string, code: string): Promise<string> {
+  return asUser(userId, async (tx) => {
+    const [p] = await tx<{ displayName: string }[]>`select display_name from profiles where id = ${userId}`;
+    await tx`select join_team(${code}, ${p!.displayName})`;
+    const [t] = await tx<{ id: string }[]>`select id from teams where invite_code = upper(trim(${code}))`;
+    return t!.id;
+  });
+}

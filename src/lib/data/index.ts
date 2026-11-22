@@ -18,7 +18,7 @@ export const {
   signIn, signUp, getUser, listMyTeams, getTeamForUser, createTeam, listMembers, getMember, addMember, updateMember, removeMember,
   listEvents, getEventDetail, createEvent, updateEvent, cancelEvent, deleteEvent, respond, sendReminders, runTick,
   handleInboundSms, getTokenContext, respondWithToken, devListOutbox, devListInbound, devListPhones,
-  unsubscribeEmail, savePushSubscription, deletePushSubscription, recordSmsStatus,
+  unsubscribeEmail, savePushSubscription, deletePushSubscription, recordSmsStatus, getInvitePreview, joinTeam,
 } = impl;
 export type { Actor, EventInput, EventSummary, MemberInput } from "./fake";
 export * from "./types";

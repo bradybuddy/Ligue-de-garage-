@@ -1,6 +1,13 @@
-import { PublicStub } from "@/components/app/stub";
+import { AuthLayout } from "@/components/app/auth-layout";
+import { CodeForm } from "@/components/app/join-forms";
 
-/** S03 — Rejoindre une équipe (à venir) */
+export const metadata = { title: "Rejoindre une équipe · Buddy & Beer" };
+
+/** S03 — Rejoindre une équipe par code */
 export default function Page() {
-  return <PublicStub id="S03" title="Rejoindre une équipe" purpose="Entre le code que ton gérant t'a envoyé (6 lettres, ex. BUDDY4)." milestone="jalon 2" back={{ href: "/", label: "Accueil" }} />;
+  return (
+    <AuthLayout title="Rejoindre une équipe" subtitle="Entre le code que ton gérant t'a envoyé.">
+      <CodeForm />
+    </AuthLayout>
+  );
 }

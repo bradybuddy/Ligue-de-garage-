@@ -570,3 +570,21 @@ export async function deletePushSubscription(userId: string, endpoint: string): 
   if (s?.userId === userId) g2.__bbPush!.delete(endpoint);
 }
 export async function recordSmsStatus(_providerMessageId: string, _status: string, _errorCode?: string): Promise<void> {}
+
+// ───────────── Rejoindre par code (S03) ─────────────
+export async function getInvitePreview(code: string): Promise<{ teamId: string; name: string; sport: string; players: number } | null> {
+  const t = db().teams.find((x) => x.inviteCode === code.trim().toUpperCase());
+  return t ? { teamId: t.id, name: t.name, sport: t.sport, players: activeMembers(t.id).length } : null;
+}
+
+export async function joinTeam(userId: string, code: string): Promise<string> {
+  const t = db().teams.find((x) => x.inviteCode === code.trim().toUpperCase());
+  if (!t) throw new DomainError("Ce code ne correspond à aucune équipe.", "not_found");
+  if (myMember(userId, t.id)) return t.id;
+  const u = (await getUser(userId))!;
+  const existing = activeMembers(t.id).find((m) => !m.userId && m.email === u.email);
+  if (existing) existing.userId = userId;
+  else db().members.push({ id: uid(), teamId: t.id, userId, displayName: u.displayName, email: u.email, phone: u.phone, class: "regular", role: "member",
+    position: "skater", jerseyNumber: null, smsOptIn: !!u.phone, beerOptOut: false, calendarToken: hexToken(), leftAt: null, createdAt: iso() });
+  return t.id;
+}
