@@ -44,7 +44,11 @@ Angle retenu (`fixes.md`) : **la fiabilité le soir du match**, avec le françai
 | Mondial ([WIPO](https://branddb.wipo.int/)) | à faire | à faire | à faire | à faire | à faire |
 | Comptes Instagram, TikTok, X, GitHub | à faire | à faire | à faire | à faire | à faire |
 
-### Recommandation : **Au Complet** (décision à toi)
+### Décision : **Buddy & Beer** (choisi par le propriétaire, 2026-11-22)
+
+La recommandation était « Au Complet » ; le propriétaire garde son nom de travail. Les trois risques plus bas restent à traiter : avocat pour la loi 96, questionnaire d'âge des magasins, et une promesse de fiabilité portée par le slogan plutôt que par le nom.
+
+### Recommandation de départ : Au Complet
 
 **Pourquoi « Au Complet » :**
 - **Il dit la promesse** : l'équipe au complet jeudi, grâce aux rappels, aux spares et à la liste d'attente. Et il colle à l'angle : « à tout coup ».
@@ -57,7 +61,7 @@ Angle retenu (`fixes.md`) : **la fiabilité le soir du match**, avec le françai
 2. Le mot « Beer » peut relever la cote d'âge sur l'App Store (questionnaire sur l'alcool) : à vérifier en remplissant le questionnaire.
 3. Il met l'accent sur la bière plutôt que sur la promesse de fiabilité.
 
-**Dans le code**, le nom vit dans `src/lib/brand.ts` (`APP_NAME`). Changer de nom, c'est une ligne, plus les fichiers listés dans `brand.json` → `outside_brand_ts`. **Pour l'instant, j'ai gardé « Buddy & Beer »** en attendant ta décision.
+**Dans le code**, le nom vit dans `src/lib/brand.ts` (`APP_NAME`). Changer de nom, c'est une ligne, plus les fichiers listés dans `brand.json` → `outside_brand_ts`. **Décision prise : « Buddy & Beer ».** Rien à changer dans le code. Pour le logo, suivre la variante « deux chopes qui trinquent » du brief.
 
 ## 2. Palette
 

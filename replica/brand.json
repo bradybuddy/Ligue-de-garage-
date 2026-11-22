@@ -2,28 +2,76 @@
   "name": {
     "current": "Buddy & Beer",
     "recommended": "Au Complet",
-    "decision": "à prendre par le propriétaire (voir brand.md) ; changer src/lib/brand.ts + les fichiers listés dans outside_brand_ts",
-    "tagline": "Ton équipe au complet, à tout coup."
+    "decision": "Buddy & Beer, choisi par le propriétaire le 2026-11-22. Risques à valider : loi 96 (marque en anglais au Québec, avocat) et cote d'âge (mot « Beer », questionnaire des magasins).",
+    "tagline": "Ton équipe au complet, à tout coup.",
+    "chosen": "Buddy & Beer"
   },
   "avoid": {
-    "names": ["BenchApp", "Bench App", "benchapp", "Benchapp"],
-    "terms": ["Chatter", "Drink duty", "Finder", "Health Check", "Nunito Bench"],
-    "domains": ["benchapp.com", "feedback.benchapp.com", "help.benchapp.com"],
-    "colors": ["#2F6BEB", "#070B1D", "#F6F8FB", "#4B5A70", "#93C5FD"],
-    "shapes": ["écusson (shield) : forme du logo de l'original"],
-    "fonts": ["Nunito"]
+    "names": [
+      "BenchApp",
+      "Bench App",
+      "benchapp",
+      "Benchapp"
+    ],
+    "terms": [
+      "Chatter",
+      "Drink duty",
+      "Finder",
+      "Health Check",
+      "Nunito Bench"
+    ],
+    "domains": [
+      "benchapp.com",
+      "feedback.benchapp.com",
+      "help.benchapp.com"
+    ],
+    "colors": [
+      "#2F6BEB",
+      "#070B1D",
+      "#F6F8FB",
+      "#4B5A70",
+      "#93C5FD"
+    ],
+    "shapes": [
+      "écusson (shield) : forme du logo de l'original"
+    ],
+    "fonts": [
+      "Nunito"
+    ]
   },
   "domains": {
     "checked_on": "2026-11-22",
     "checked_with": "outil de disponibilité du registre (connecteur Shopify) ; point dans le temps, pas une réservation",
-    "available": ["aucomplet.ca", "aucomplet.com", "aucomplet.app", "buddyandbeer.ca", "buddyandbeer.com", "rondelle.app", "jeudisoir.ca"],
-    "unknown": ["rondelle.com", "rondelle.ca", "jeudisoir.com", "embarque.*"],
-    "chosen": null
+    "available": [
+      "aucomplet.ca",
+      "aucomplet.com",
+      "aucomplet.app",
+      "buddyandbeer.ca",
+      "buddyandbeer.com",
+      "rondelle.app",
+      "jeudisoir.ca"
+    ],
+    "unknown": [
+      "rondelle.com",
+      "rondelle.ca",
+      "jeudisoir.com",
+      "embarque.*"
+    ],
+    "chosen": "à acheter : buddyandbeer.ca (principal) + buddyandbeer.com (redirigé) ; libres au 2026-11-22, à revérifier à l'achat"
   },
   "colors": {
     "source": "replica/design/tokens.json (rôles inchangés, valeurs de marque)",
-    "brand": { "accent": "#F2A516", "accent-strong": "#8A5800", "ink": "#121722", "bg": "#F7F5F0" },
-    "status": { "in": "#167A3E", "out": "#C42B2B", "wait": "#6B3FD4" },
+    "brand": {
+      "accent": "#F2A516",
+      "accent-strong": "#8A5800",
+      "ink": "#121722",
+      "bg": "#F7F5F0"
+    },
+    "status": {
+      "in": "#167A3E",
+      "out": "#C42B2B",
+      "wait": "#6B3FD4"
+    },
     "contrast_failures": 0
   },
   "outside_brand_ts": [

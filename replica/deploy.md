@@ -1,8 +1,8 @@
-# Checklist de mise en ligne : Buddy & Beer (nom provisoire ; « Au Complet » recommandé)
+# Checklist de mise en ligne : Buddy & Beer
 
 Date : 2026-11-22  Commit : voir `git log` (branche `claude/new-session-aidw57`)  **Contrôle d'avant mise en ligne : réussi (`npm run preflight`). Feu vert du propriétaire : pas encore**
 
-> Rien n'est en ligne. Le contrôle du code est vert ; la suite (sections 2 à 4) demande tes comptes. Le nom reste « Buddy & Beer » tant que tu n'as pas choisi.
+> Rien n'est en ligne. Le contrôle du code est vert ; la suite (sections 2 à 4) demande tes comptes.  Nom choisi : **Buddy & Beer**.
 > Règle : c'est toi qui achètes, qui te connectes et qui colles les clés. Ce document donne les valeurs exactes ; Claude ne crée aucun compte et ne voit aucune clé de production.
 
 ## 1. Contrôle d'avant mise en ligne
@@ -81,14 +81,14 @@ Ajouté pendant cette étape :
 | `DATABASE_URL_DIRECT` | connexion directe (port 5432), pour les migrations |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID` | Twilio |
 | `TWILIO_WEBHOOK_URL` | `https://<domaine>/api/webhooks/twilio/sms` (exactement l'URL configurée chez Twilio : la signature en dépend) |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Resend ; ex. `Au Complet <rappels@mail.<domaine>>` |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Resend ; `Buddy & Beer <rappels@mail.buddyandbeer.ca>` |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | web-push ; `mailto:aide@<domaine>` |
 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | Sentry |
 | `GIPHY_API_KEY` | **ne pas définir** (pas de GIF au lancement) |
 | **Jamais** : `ALLOW_DEMO`, `MAILPIT_URL`, `TEST_DATABASE_URL` | le build de production refuse `ALLOW_DEMO` |
 
 ### Domaine (à acheter par toi, chez n'importe quel registraire)
-Libres au 2026-11-22 (`brand.json`) : `aucomplet.ca`, `aucomplet.com`, `aucomplet.app`, `buddyandbeer.ca`, `buddyandbeer.com`. **Choisir le nom d'abord.** Pour le Québec, `.ca` comme domaine principal, et `.com` redirigé.
+Libres au 2026-11-22 (`brand.json`) : `aucomplet.ca`, `aucomplet.com`, `aucomplet.app`, `buddyandbeer.ca`, `buddyandbeer.com`. **Nom choisi : Buddy & Beer → acheter `buddyandbeer.ca` (principal) et `buddyandbeer.com` (redirigé vers le .ca).** Revérifier la disponibilité au moment de l'achat.
 
 | Type | Nom | Valeur | Pour |
 |---|---|---|---|

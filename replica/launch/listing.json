@@ -1,6 +1,6 @@
 {
   "_notes": {
-    "name": "APP_NAME pas encore tranché. La fiche utilise « Buddy & Beer » ; si c'est « Au Complet », remplacer app_store.name et play.title par les valeurs de alt_names, puis relancer scripts/check-listing.mjs.",
+    "name": "Nom choisi : Buddy & Beer (2026-11-22). alt_names (Au Complet) gardé pour mémoire seulement.",
     "language": "fr-CA (langue principale). Une fiche en-CA pourra suivre.",
     "checked_by": "node scripts/check-listing.mjs (limites, mots interdits, mots du nom répétés dans les mots-clés, emoji, prétentions)"
   },
