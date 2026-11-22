@@ -59,3 +59,11 @@ Aucune erreur de console. Le lien du courriel est vérifié aussi : une pré-ouv
 - **La couche de démo vit en mémoire** : un seul processus. C'est parfait pour développer et faire des démos, impossible pour la production. `/replica-backend` la remplace.
 - **Avis au gérant, rappels et promotions** : ils sont bien écrits dans la file d'envoi (visible dans `/dev`), mais rien ne part vraiment tant que Twilio, Resend et Web Push ne sont pas branchés.
 - **Les spares automatiques (le « argument #1 »)** ne sont pas dans ce jalon. Ce sont la prochaine priorité du jalon 2, avec S14 et S15.
+
+## Backend (2026-11-22)
+
+La couche de démo est remplacée par Postgres/Supabase quand `DATABASE_URL` est défini. Détails, tests et liste de sécurité dans `replica/backend.md`. Écrans ajoutés :
+- mot de passe oublié et nouveau mot de passe ;
+- confirmation de courriel (`/auth/confirm`) ;
+- désabonnement ;
+- S26 Mon compte, partiel : notifs de l'appareil, sessions, suppression.

@@ -1,5 +1,5 @@
 feature,area,priority,original,clone,notes
-Création de compte et connexion,Compte,must,yes,partial,S02 | clone : S02 fait avec une session de démo ; mot de passe oublié et vraie auth à /replica-backend
+Création de compte et connexion,Compte,must,yes,yes,"S02 | clone : Supabase Auth : vérification du courriel, mot de passe oublié, déconnexion partout, suppression du compte"
 Rejoindre une équipe par code ou lien,Compte,must,yes,no,S03
 Créer une équipe,Équipe,must,yes,partial,"S04 | clone : S04 : nom, sport, max de joueurs ; division et saison plus tard"
 Classes de joueurs (régulier/spare/spectateur/staff/vacances/blessé/suspendu),Alignement,must,yes,yes,S11-S12; source I | clone : 7 classes ; absents exclus des rappels et listés à part sur S07
@@ -14,12 +14,12 @@ Synchro auto de l'horaire de la ligue (iCal),Horaire,should,PRO,no,C
 Abonnement calendrier (ICS) pour le joueur,Horaire,must,yes,no,F; bogue d'heure avancée à éviter
 Assigner les chambres,Horaire,could,yes,no,E
 Réponse IN/OUT dans l'appli,Présences,must,yes,yes,"F02 cœur | clone : S05, S07 ; clavier OK ; liste d'attente si complet"
-Réponse IN/OUT par courriel,Présences,must,yes,partial,"C | clone : lien /r/[jeton] OK, sûr face aux antivirus ; envoi réel (Resend) à brancher"
-Réponse IN/OUT par texto (Y/N),Présences,must,PRO,partial,C; inclus chez nous | clone : Y/N/OUI/NON + code si plusieurs matchs ; webhook Twilio signé ; pas encore de vrai numéro
+Réponse IN/OUT par courriel,Présences,must,yes,yes,"C | clone : Resend branché, testé de bout en bout avec Mailpit ; à valider avec la vraie clé"
+Réponse IN/OUT par texto (Y/N),Présences,must,PRO,yes,"C; inclus chez nous | clone : webhook Twilio signé, testé de bout en bout ; vrai numéro à brancher"
 Note sur la présence,Présences,should,yes,partial,F | clone : stockée et affichée ; pas encore de champ pour l'écrire
 Rappels automatiques avant le match (délai réglable),Présences,must,yes,partial,"E | clone : tâche idempotente, 48 h avant ; réglage du délai (S25) et pg_cron à brancher"
 Relance manuelle des sans-réponse,Présences,should,yes,yes,E | clone : bouton sur S07
-Avis au gérant quand un joueur passe IN→OUT,Présences,must,yes,partial,E | clone : mis dans la file d'envoi ; livraison push/texto réelle à brancher
+Avis au gérant quand un joueur passe IN→OUT,Présences,must,yes,yes,"E | clone : livré par push, sinon texto, sinon courriel"
 Check-in automatique,Présences,could,yes,no,F
 Max joueurs / max gardiens,Présences,must,yes,yes,"G | clone : plafonds séparés, par équipe et par match"
 Invitations automatiques aux spares,Spares,must,PRO,no,G; notre argument #1; ajouter texto + notif (BenchApp = courriel seulement en auto)
@@ -38,7 +38,7 @@ Messages privés,Communication,should,yes,no,S17
 Diffusion courriel/texto/notif,Communication,must,partial PRO,no,S18
 Bulletins et sondages,Communication,should,PRO,no,S19
 Médias d'équipe,Communication,could,yes,no,E
-Contrôle des courriels (désabonnement facile),Communication,must,unclear,no,plainte L: 67 courriels/semaine
+Contrôle des courriels (désabonnement facile),Communication,must,unclear,partial,plainte L: 67 courriels/semaine | clone : désabonnement en un clic par type d'envoi (RFC 8058) ; écran de préférences S26 à faire
 Pointage rapide (score final),Stats,should,yes,no,E
 Pointeur complet (buts/passes/punitions/tirs),Stats,could,PRO,no,S23
 Stats joueurs + gardiens,Stats,should,yes,no,S24

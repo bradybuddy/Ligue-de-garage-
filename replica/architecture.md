@@ -16,7 +16,7 @@ Schéma : `replica/schema.sql` (migration 0001, testée sur Postgres 16 — voir
 | Style | **Tailwind**, jetons de `/replica-design` | Rapide, cohérent. |
 | i18n | **next-intl**, `fr-CA` par défaut, `en-CA` en second | Français d'abord, c'est un différenciateur. Toutes les chaînes passent par des fichiers de messages dès le jour 1. |
 | Base de données | **Postgres sur Supabase, région `ca-central-1` (Montréal)** | Données au Canada (Loi 25 du Québec). RLS, Realtime et Auth fournis. |
-| Accès BD | **Drizzle ORM** + client Supabase pour le Realtime | Types générés depuis le schéma. Les écritures critiques passent par des fonctions SQL (`set_attendance`, `pick_beer`...). |
+| Accès BD | **Pilote `postgres`** (SQL écrit à la main), RLS appliqué par `set local role authenticated` + `request.jwt.claims` ; client Supabase pour l'auth et le Realtime | Changé au backend (voir `backend.md`) : un ORM n'apportait rien avec le RLS en base. Les écritures critiques passent par des fonctions SQL (`set_attendance`, `pick_beer`...). |
 | Authentification | **Supabase Auth** : courriel + mot de passe, lien magique | Mot de passe oublié inclus. Un joueur peut répondre **sans compte** (jeton courriel ou texto). |
 | Textos | **Twilio**, numéro canadien (514/438) | Envoi + réception Y/N. Environ 0,01 $ par texto. STOP géré par Twilio. |
 | Courriel | **Resend** (domaine vérifié SPF/DKIM/DMARC) | Simple, en-tête `List-Unsubscribe` en un clic. |
