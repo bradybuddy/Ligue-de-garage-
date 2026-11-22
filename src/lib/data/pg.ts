@@ -14,10 +14,8 @@ import { deliverOutbox } from "./delivery";
 import {
   DomainError, type Attendance, type AttendanceStatus, type EventDetail, type InboundSms, type Member, type OutboxItem, type PlayerClass,
   type ResponseSource, type RosterEntry, type Sport, type Team, type TeamEvent, type User,
+  type Actor, type EventInput, type EventSummary, type MemberInput,
 } from "./types";
-import type { Actor, EventInput, EventSummary, MemberInput } from "./fake";
-
-export type { Actor, EventInput, EventSummary, MemberInput };
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 const tx$ = <T>(actor: Actor, fn: (tx: Tx) => Promise<T>) => (actor === "system" ? asService(fn) : asUser(actor, fn));
@@ -32,12 +30,6 @@ async function assertMember(tx: Tx, teamId: string) {
 }
 
 // ───────────── Comptes : gérés par Supabase Auth (src/lib/auth.ts) ─────────────
-export async function signIn(_email: string, _password: string): Promise<User> {
-  throw new DomainError("La connexion passe par Supabase Auth.");
-}
-export async function signUp(_input: { displayName: string; email: string; password: string; phone?: string | null }): Promise<User> {
-  throw new DomainError("L'inscription passe par Supabase Auth.");
-}
 export async function getUser(id: string): Promise<User | null> {
   if (!isUuid(id)) return null;
   const [u] = await asService((tx) => tx<User[]>`select * from user_with_email(${id})`);
@@ -523,9 +515,6 @@ export async function devListInbound() {
 export async function devListPhones() {
   return asService((tx) => tx<{ phone: string; name: string; teamId: string }[]>`
     select distinct on (phone) phone, display_name as name, team_id from members where phone is not null and left_at is null order by phone`);
-}
-export async function devAttendanceRows(): Promise<Attendance[]> {
-  return asService((tx) => tx<Attendance[]>`select * from attendance`);
 }
 
 // ───────────── Avis et abonnements ─────────────

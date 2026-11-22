@@ -2,7 +2,6 @@
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { handleInboundSms, runTick } from "@/lib/data";
-import { resetStore } from "@/lib/data/store";
 
 const guard = () => { if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO !== "1") notFound(); };
 
@@ -21,8 +20,3 @@ export async function devReplyAction(fd: FormData) {
   revalidatePath("/", "layout");
 }
 
-export async function devResetAction() {
-  guard();
-  resetStore();
-  revalidatePath("/", "layout");
-}

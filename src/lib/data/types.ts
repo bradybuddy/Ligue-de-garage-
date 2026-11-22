@@ -157,3 +157,35 @@ export interface EventDetail {
   me: RosterEntry | null;
   canManage: boolean;
 }
+
+// ───────────── Entrées et vues des fonctions de données ─────────────
+export type Actor = string | "system"; // userId ou le serveur (clé de service)
+
+export interface MemberInput {
+  displayName: string;
+  email?: string | null;
+  phone?: string | null;
+  class: PlayerClass;
+  role?: MemberRole;
+  position: Position;
+  jerseyNumber?: number | null;
+  smsOptIn?: boolean;
+}
+
+export interface EventInput {
+  type: EventType;
+  date: string; // AAAA-MM-JJ, heure locale de l'équipe
+  time: string; // HH:MM
+  venue?: string | null;
+  opponent?: string | null;
+  title?: string | null;
+  maxPlayers?: number | null;
+  homeRoom?: string | null;
+  awayRoom?: string | null;
+}
+
+export interface EventSummary extends TeamEvent {
+  myStatus: AttendanceStatus | null;
+  inCount: number;
+  cap: number;
+}

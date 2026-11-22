@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { SignInForm } from "@/components/app/auth-forms";
-import { currentUser, supabaseAuthEnabled } from "@/lib/auth";
+import { currentUser } from "@/lib/auth";
 import { Banner } from "@/components/ui/feedback";
-import { DEMO_PASSWORD } from "@/lib/data/store";
 
 export const metadata = { title: "Connexion · Buddy & Beer" };
 
@@ -20,9 +19,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ n
       {lien && notices[lien] && <div className="mb-4"><Banner tone={notices[lien].tone}>{notices[lien].text}</Banner></div>}
       {partout && <div className="mb-4"><Banner tone="info">Tu es déconnecté de tous tes appareils.</Banner></div>}
       <SignInForm next={next} />
-      {!supabaseAuthEnabled && process.env.NODE_ENV !== "production" && (
+      {process.env.NODE_ENV !== "production" && (
         <p className="mt-4 rounded-md bg-surface-2 p-3 text-sm text-muted">
-          Démo : <strong className="text-text">marc@exemple.ca</strong> (gérant) ou <strong className="text-text">sophie@exemple.ca</strong> (joueuse), mot de passe <strong className="text-text">{DEMO_PASSWORD}</strong>.
+          Démo : <strong className="text-text">marc@exemple.ca</strong> (gérant) ou <strong className="text-text">sophie@exemple.ca</strong> (joueuse), mot de passe <strong className="text-text">buddy123</strong> (données de <code>npm run db:seed</code>).
         </p>
       )}
     </AuthLayout>

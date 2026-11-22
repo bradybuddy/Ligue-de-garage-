@@ -6,7 +6,7 @@ import { prettyPhone } from "@/lib/sms";
 import { fmtTime } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/field";
-import { devReplyAction, devResetAction, devTickAction } from "@/app/actions/dev";
+import { devReplyAction, devTickAction } from "@/app/actions/dev";
 import { cn } from "@/lib/cn";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
         <h1 className="font-display text-3xl font-bold">Simulateur (dev)</h1>
         <div className="flex gap-2">
           <Link href="/" className="inline-flex h-10 items-center rounded-md border border-border-input px-4 text-sm font-semibold">Ouvrir l&apos;appli</Link>
-          <form action={devResetAction}><Button type="submit" variant="ghost">Réinitialiser les données</Button></form>
         </div>
       </div>
 
