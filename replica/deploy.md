@@ -15,7 +15,7 @@ Relancer en tout temps : `npm run preflight` (et `npm run preflight -- --prod` a
 - [x] Balayage de la marque propre : aucun nom, domaine, couleur ni police de l'original dans le code ni dans les noms de fichiers. Le test qui vérifiait l'absence du nom lit maintenant `brand.json` au lieu de l'écrire.
 - [x] Fiche des magasins conforme (`node scripts/check-listing.mjs`)
 - [x] Build de production : réussi
-- [x] **Pages légales :** `/confidentialite` (Loi 25, chaque fournisseur nommé) et `/conditions`, liées depuis l'accueil et l'inscription. Exploitant et responsable de la protection des renseignements personnels : Jean Claude Houle, Mirabel (Québec) ; contact : `beerbuddy@gmail.com`. Ce sont des **ébauches** : à faire relire par un avocat avant d'ouvrir au public.
+- [x] **Pages légales :** `/confidentialite` (Loi 25, chaque fournisseur nommé) et `/conditions`, liées depuis l'accueil et l'inscription. Exploitant et responsable de la protection des renseignements personnels : Jean Claude Houle, Mirabel (Québec) ; contact : `buddybeer@gmail.com`. Ce sont des **ébauches** : à faire relire par un avocat avant d'ouvrir au public.
 - [x] Suppression du compte : marche (test X-A3) ; l'historique d'équipe devient « Ancien joueur »
 - [~] Icône, favicon, image sociale, manifeste PWA : **faits, avec une icône provisoire** tirée du brief de logo (rondelle ambre + crochet). Quand le designer livre le logo : remplacer `src/app/icon.svg`, puis `npm run brand:assets`. Même commande après un changement de nom (l'image sociale contient le nom).
 - [x] Témoins : un seul, la session (essentiel) → pas de bannière de témoins nécessaire
