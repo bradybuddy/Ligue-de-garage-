@@ -26,9 +26,8 @@ export async function saveMemberAction(teamId: string, memberId: string | null, 
   const p = MemberForm.safeParse({ ...values, smsOptIn: !!fd.get("smsOptIn") });
   if (!p.success) return { values, fields: Object.fromEntries(p.error.issues.map((i) => [String(i.path[0]), i.message])) };
   const d = p.data;
-  if (d.smsOptIn && !d.phone) return { values, fields: { phone: "Il faut un numéro pour envoyer des textos." } };
   if (!d.email && !d.phone) return { values, fields: { phone: "Ajoute un cellulaire ou un courriel pour qu'il reçoive les rappels." } };
-  const input = { ...d, email: d.email || null, phone: d.phone || null, jerseyNumber: d.jerseyNumber === "" ? null : d.jerseyNumber };
+  const input = { ...d, email: d.email || null, phone: d.phone || null, smsOptIn: d.smsOptIn && !!d.phone, jerseyNumber: d.jerseyNumber === "" ? null : d.jerseyNumber };
   try {
     if (memberId) await updateMember(user.id, teamId, memberId, input);
     else await addMember(user.id, teamId, input);
