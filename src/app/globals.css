@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "../../replica/design/tokens.css";
+
+/* Le thème sombre suit data-theme (ou le système). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Correspondance jetons → Tailwind.
+ * La palette par défaut de Tailwind est retirée : on écrit bg-surface,
+ * text-muted, bg-in... jamais bg-blue-500 ni de hex dans les composantes.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-input: var(--border-input);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent-soft: var(--on-accent-soft);
+  --color-ring: var(--ring);
+  --color-in: var(--in);
+  --color-on-in: var(--on-in);
+  --color-in-soft: var(--in-soft);
+  --color-on-in-soft: var(--on-in-soft);
+  --color-out: var(--out);
+  --color-on-out: var(--on-out);
+  --color-out-soft: var(--out-soft);
+  --color-on-out-soft: var(--on-out-soft);
+  --color-wait: var(--wait);
+  --color-on-wait: var(--on-wait);
+  --color-wait-soft: var(--wait-soft);
+  --color-on-wait-soft: var(--on-wait-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-on-warning-soft: var(--on-warning-soft);
+  --color-overlay: var(--overlay);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --text-xs: var(--text-xs);
+  --text-xs--line-height: var(--text-xs-line);
+  --text-sm: var(--text-sm);
+  --text-sm--line-height: var(--text-sm-line);
+  --text-base: var(--text-base);
+  --text-base--line-height: var(--text-base-line);
+  --text-lg: var(--text-lg);
+  --text-lg--line-height: var(--text-lg-line);
+  --text-xl: var(--text-xl);
+  --text-xl--line-height: var(--text-xl-line);
+  --text-2xl: var(--text-2xl);
+  --text-2xl--line-height: var(--text-2xl-line);
+  --text-3xl: var(--text-3xl);
+  --text-3xl--line-height: var(--text-3xl-line);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+
+  --ease-standard: var(--ease-standard);
+
+  --container-content: var(--content-max);
+  --container-wide: var(--wide-max);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base-line);
+    font-feature-settings: "cv11", "ss01";
+  }
+  /* Anneau de focus unique pour toute l'appli */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--on-accent-soft);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+@utility touch {
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+}
+@utility transition-ui {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--ease-standard);
+}

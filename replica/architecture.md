@@ -10,7 +10,7 @@ Schéma : `replica/schema.sql` (migration 0001, testée sur Postgres 16 — voir
 
 | Couche | Choix | Pourquoi |
 |---|---|---|
-| Appli web | **Next.js 15 (App Router) + TypeScript** | Un seul code pour le web et les routes serveur (webhooks, ICS, tâches). |
+| Appli web | **Next.js 16 (App Router) + TypeScript** | Un seul code pour le web et les routes serveur (webhooks, ICS, tâches). |
 | Mobile V1 | **PWA** (installable, Web Push) | iOS 16.4+ et Android reçoivent les push d'une PWA installée. On évite l'App Store au départ et les « plantages après mise à jour », la plainte n° 1 contre BenchApp. |
 | Mobile V2 | **Expo (React Native)** | Quand la boucle est prouvée. Réutilise les types et l'API. |
 | Style | **Tailwind**, jetons de `/replica-design` | Rapide, cohérent. |
