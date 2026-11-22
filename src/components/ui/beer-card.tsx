@@ -1,5 +1,4 @@
 import { Beer, Repeat } from "lucide-react";
-import { Button } from "./button";
 
 /** La tournée : qui apporte la bière ce match-ci. */
 export function BeerCard({ name, isMe, drinksBrought }: { name: string | null; isMe?: boolean; drinksBrought?: number }) {
@@ -19,7 +18,7 @@ export function BeerCard({ name, isMe, drinksBrought }: { name: string | null; i
           <p className="text-sm text-on-accent-soft">{drinksBrought} tournée{drinksBrought > 1 ? "s" : ""} cette saison</p>
         )}
       </div>
-      {isMe && <Button variant="secondary" size="sm"><Repeat aria-hidden className="size-4" />Échanger</Button>}
+      {isMe && <span className="inline-flex items-center gap-1 text-sm font-semibold text-on-accent-soft"><Repeat aria-hidden className="size-4" />Échanger</span>}
     </section>
   );
 }

@@ -14,7 +14,7 @@ import { deliverOutbox } from "./delivery";
 import {
   DomainError, type Attendance, type AttendanceStatus, type EventDetail, type InboundSms, type Member, type OutboxItem, type PlayerClass,
   type ResponseSource, type RosterEntry, type Sport, type Team, type TeamEvent, type User,
-  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel,
+  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview,
 } from "./types";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -188,6 +188,8 @@ export async function getEventDetail(actor: Actor, eventId: string): Promise<Eve
     const members = await tx<Member[]>`select * from members where team_id = ${team!.id} and left_at is null and class not in ('spectator','staff')`;
     const att = new Map((await tx<Attendance[]>`select * from attendance where event_id = ${eventId}`).map((a) => [a.memberId, a]));
     const [{ uid, manager }] = await tx<{ uid: string | null; manager: boolean }[]>`select auth.uid() as uid, is_team_manager(${team!.id}::uuid) as manager`;
+    const [beer] = await tx<{ memberId: string; name: string }[]>`
+      select b.member_id, m.display_name as name from beer_turns b join members m on m.id = b.member_id where b.event_id = ${eventId}`;
     const invitedIds = new Set((await tx<{ memberId: string }[]>`select distinct member_id from spare_invites where event_id = ${eventId}`.catch(() => [])).map((r) => r.memberId));
     const entries: RosterEntry[] = members.map((m) => {
       const a = att.get(m.id);
@@ -216,6 +218,7 @@ export async function getEventDetail(actor: Actor, eventId: string): Promise<Eve
       groups,
       me: uid ? (entries.find((e) => e.userId === uid) ?? null) : null,
       canManage: actor === "system" || manager,
+      beer: beer ?? null,
     };
   });
 }
@@ -693,4 +696,90 @@ export async function acceptFromWaitlist(actor: Actor, eventId: string, memberId
   if (!isUuid(eventId) || !isUuid(memberId)) throw new DomainError("Introuvable.", "not_found");
   await tx$(actor, (tx) => tx`select force_in(${eventId}, ${memberId})`);
   void deliverOutbox({ limit: 20 }).catch((e) => console.error("livraison", e));
+}
+
+// ───────────── Calendrier (abonnement ICS) ─────────────
+/** Lecture par jeton secret (l'appli Calendrier n'a pas de session). Seulement l'équipe de ce membre. */
+export async function getCalendarFeed(token: string) {
+  if (!/^[a-f0-9]{36}$/.test(token)) return null;
+  return asService(async (tx) => {
+    const [m] = await tx<Member[]>`select * from members where calendar_token = ${token} and left_at is null`;
+    if (!m) return null;
+    const [team] = await tx<Team[]>`select * from teams where id = ${m.teamId}`;
+    const events = await tx<(TeamEvent & { updatedAt: string; myStatus: AttendanceStatus | null })[]>`
+      select e.*, a.status as my_status from events e
+        left join attendance a on a.event_id = e.id and a.member_id = ${m.id}
+       where e.team_id = ${m.teamId} and e.starts_at > now() - interval '60 days'
+       order by e.starts_at`;
+    return { member: m, team: team!, events };
+  });
+}
+
+// ───────────── Tournée (S22) ─────────────
+export async function getBeerOverview(actor: Actor, teamId: string): Promise<BeerOverview> {
+  return tx$(actor, async (tx) => {
+    if (actor !== "system") await assertMember(tx, teamId);
+    const [team] = await tx<Team[]>`select * from teams where id = ${teamId}`;
+    if (!team) throw new DomainError("Équipe introuvable.", "not_found");
+    const [{ manager }] = await tx<{ manager: boolean }[]>`select is_team_manager(${teamId}::uuid) as manager`;
+    const [me] = await tx<Member[]>`select * from members where team_id = ${teamId} and user_id = auth.uid() and left_at is null`;
+    const events = await tx<(TeamEvent & { beerMember: string | null; beerName: string | null; beerMode: "auto" | "manual" | null })[]>`
+      select e.*, b.member_id as beer_member, m.display_name as beer_name, b.mode as beer_mode
+        from events e left join beer_turns b on b.event_id = e.id left join members m on m.id = b.member_id
+       where e.team_id = ${teamId} and e.status = 'scheduled' and e.starts_at > now() - interval '3 hours'
+       order by e.starts_at limit 4`;
+    const ins = await tx<{ eventId: string; id: string; name: string }[]>`
+      select a.event_id, m.id, m.display_name as name from attendance a join members m on m.id = a.member_id
+       where a.event_id in ${tx(events.length ? events.map((e) => e.id) : ["00000000-0000-0000-0000-000000000000"])} and a.status = 'in'
+       order by m.display_name`;
+    const standings = await tx<{ memberId: string; name: string; count: number; optOut: boolean }[]>`
+      select m.id as member_id, m.display_name as name, m.beer_opt_out as opt_out,
+             (select count(*)::int from beer_turns b join events e on e.id = b.event_id
+               where b.member_id = m.id and e.team_id = ${teamId}
+                 and e.season_id is not distinct from (select id from seasons where team_id = ${teamId} and is_active)) as count
+        from members m where m.team_id = ${teamId} and m.left_at is null and m.class in ('regular','spare')
+       order by count desc, m.display_name`;
+    return {
+      team: team!, enabled: team!.beerEnabled, canManage: actor === "system" || manager,
+      me: { memberId: me?.id ?? "", optOut: me?.beerOptOut ?? false },
+      upcoming: events.map(({ beerMember, beerName, beerMode, ...event }) => ({
+        event: event as TeamEvent, memberId: beerMember, memberName: beerName, mode: beerMode,
+        inPlayers: ins.filter((i) => i.eventId === event.id).map(({ id, name }) => ({ id, name })),
+      })),
+      standings,
+    };
+  });
+}
+
+export async function setBeerOptOut(userId: string, teamId: string, optOut: boolean): Promise<void> {
+  const n = await asUser(userId, (tx) => tx`update members set beer_opt_out = ${optOut} where team_id = ${teamId} and user_id = ${userId} and left_at is null returning id`);
+  if (!n.length) throw new DomainError("Tu ne fais pas partie de cette équipe.", "forbidden");
+}
+
+/** Le gérant choisit à la main (memberId) ou laisse l'appli choisir maintenant (null). */
+export async function setBeerTurn(actor: Actor, eventId: string, memberId: string | null): Promise<string | null> {
+  if (!isUuid(eventId) || (memberId && !isUuid(memberId))) throw new DomainError("Introuvable.", "not_found");
+  const ev = await tx$(actor, async (tx) => {
+    const [ev] = await tx<TeamEvent[]>`select * from events where id = ${eventId}`;
+    if (!ev) throw new DomainError("Match introuvable.", "not_found");
+    if (actor !== "system") await assertManager(tx, ev.teamId);
+    return ev;
+  });
+  const chosen = await asService(async (tx) => {
+    if (!memberId) {
+      await tx`delete from beer_turns where event_id = ${eventId}`;
+      const [r] = await tx<{ id: string | null }[]>`select pick_beer(${eventId}) as id`;
+      return r?.id ?? null;
+    }
+    const [m] = await tx`select 1 from members where id = ${memberId} and team_id = ${ev.teamId} and left_at is null`;
+    if (!m) throw new DomainError("Joueur introuvable.", "not_found");
+    await tx`insert into beer_turns (event_id, member_id, mode) values (${eventId}, ${memberId}, 'manual')
+             on conflict (event_id) do update set member_id = excluded.member_id, mode = 'manual', confirmed_at = null`;
+    await tx`update events set beer_assigned_at = now() where id = ${eventId}`;
+    await tx`insert into outbox (member_id, channel, category, template, payload, dedupe_key)
+             values (${memberId}, 'push', 'beer', 'beer_duty', ${tx.json({ event_id: eventId })}, ${`beer:${eventId}:${memberId}:${Date.now()}`})`;
+    return memberId;
+  });
+  void deliverOutbox({ limit: 20 }).catch((e) => console.error("livraison", e));
+  return chosen;
 }

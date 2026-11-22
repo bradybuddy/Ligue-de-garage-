@@ -162,6 +162,7 @@ export interface EventDetail {
   };
   me: RosterEntry | null;
   canManage: boolean;
+  beer: { memberId: string; name: string } | null;
 }
 
 // ───────────── Entrées et vues des fonctions de données ─────────────
@@ -207,4 +208,13 @@ export interface SparesPanel {
   team: Team;
   open: { players: number; goalies: number };
   spares: SpareRow[];
+}
+
+export interface BeerOverview {
+  team: Team;
+  enabled: boolean;
+  canManage: boolean;
+  me: { memberId: string; optOut: boolean };
+  upcoming: { event: TeamEvent; memberId: string | null; memberName: string | null; mode: "auto" | "manual" | null; inPlayers: { id: string; name: string }[] }[];
+  standings: { memberId: string; name: string; count: number; optOut: boolean }[];
 }

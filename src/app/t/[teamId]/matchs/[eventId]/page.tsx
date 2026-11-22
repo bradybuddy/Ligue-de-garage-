@@ -8,6 +8,7 @@ import { fmtAgo, fmtLongDate, fmtTime } from "@/lib/time";
 import { AttendanceCounter } from "@/components/ui/attendance";
 import { Banner } from "@/components/ui/feedback";
 import { PlayerList, PlayerRow } from "@/components/ui/player-row";
+import { BeerCard } from "@/components/ui/beer-card";
 import { PageTitle } from "@/components/app/page-title";
 import { MyAttendance } from "@/components/app/my-attendance";
 import { LiveRefresh } from "@/components/app/live-refresh";
@@ -29,7 +30,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const title = ev.opponent ? `contre ${ev.opponent}` : ev.title ?? (ev.type === "practice" ? "Pratique" : "Partie");
 
   const row = (p: RosterEntry, showStatus = false) => (
-    <PlayerRow key={p.id} name={p.displayName} jersey={p.jerseyNumber ?? undefined} position={p.position}
+    <PlayerRow key={p.id} name={p.displayName} beer={d.beer?.memberId === p.id} jersey={p.jerseyNumber ?? undefined} position={p.position}
       playerClass={p.class !== "regular" ? p.class : undefined} status={showStatus ? p.status : undefined}
       note={p.note ?? undefined}
       meta={p.respondedAt && p.status !== "no_reply" ? [sourceLabel[p.source ?? ""], fmtAgo(p.respondedAt)].filter(Boolean).join(" · ") : undefined}
@@ -63,6 +64,12 @@ export default async function Page({ params, searchParams }: { params: Promise<{
         <AttendanceCounter label="Joueurs" count={d.counts.in} max={d.cap.players} />
         <AttendanceCounter label="Gardiens" count={d.counts.goaliesIn} max={d.cap.goalies} />
       </div>
+
+      {team.beerEnabled && ev.status === "scheduled" && (
+        <Link href={`${base}/tournee`} aria-label="La tournée : voir et changer" className="rounded-lg transition-ui hover:opacity-90">
+          <BeerCard name={d.beer?.name ?? null} isMe={!!d.me && d.beer?.memberId === d.me.id} />
+        </Link>
+      )}
 
       {canManage && open && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
