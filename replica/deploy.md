@@ -1,8 +1,8 @@
 # Checklist de mise en ligne : Buddy & Beer (nom provisoire ; « Au Complet » recommandé)
 
-Date : 2026-11-22  Commit : voir `git log` (branche `claude/new-session-aidw57`)  **Feu vert du propriétaire : pas encore**
+Date : 2026-11-22  Commit : voir `git log` (branche `claude/new-session-aidw57`)  **Contrôle d'avant mise en ligne : réussi (`npm run preflight`). Feu vert du propriétaire : pas encore**
 
-> Rien n'est en ligne. Le contrôle d'avant mise en ligne **échoue sur 2 points** que seul le propriétaire peut régler (section 1). Tant que `npm run preflight` n'est pas vert, on ne déploie pas.
+> Rien n'est en ligne. Le contrôle du code est vert ; la suite (sections 2 à 4) demande tes comptes. Le nom reste « Buddy & Beer » tant que tu n'as pas choisi.
 > Règle : c'est toi qui achètes, qui te connectes et qui colles les clés. Ce document donne les valeurs exactes ; Claude ne crée aucun compte et ne voit aucune clé de production.
 
 ## 1. Contrôle d'avant mise en ligne
@@ -15,7 +15,7 @@ Relancer en tout temps : `npm run preflight` (et `npm run preflight -- --prod` a
 - [x] Balayage de la marque propre : aucun nom, domaine, couleur ni police de l'original dans le code ni dans les noms de fichiers. Le test qui vérifiait l'absence du nom lit maintenant `brand.json` au lieu de l'écrire.
 - [x] Fiche des magasins conforme (`node scripts/check-listing.mjs`)
 - [x] Build de production : réussi
-- [ ] **Pages légales :** `/confidentialite` (Loi 25, chaque fournisseur nommé) et `/conditions` existent, liées depuis l'accueil et l'inscription. Mais **`LEGAL` dans `src/lib/brand.ts` est à remplir** : nom de l'entreprise, ville, responsable de la protection des renseignements personnels, courriels. Ce sont des **ébauches** : à faire relire par un avocat.
+- [x] **Pages légales :** `/confidentialite` (Loi 25, chaque fournisseur nommé) et `/conditions`, liées depuis l'accueil et l'inscription. Exploitant et responsable de la protection des renseignements personnels : Jean Claude Houle, Mirabel (Québec) ; contact : `beerbuddy@gamail.com` (**vérifier l'orthographe : gamail ou gmail?** C'est l'adresse publiée). Ce sont des **ébauches** : à faire relire par un avocat avant d'ouvrir au public.
 - [x] Suppression du compte : marche (test X-A3) ; l'historique d'équipe devient « Ancien joueur »
 - [~] Icône, favicon, image sociale, manifeste PWA : **faits, avec une icône provisoire** tirée du brief de logo (rondelle ambre + crochet). Quand le designer livre le logo : remplacer `src/app/icon.svg`, puis `npm run brand:assets`. Même commande après un changement de nom (l'image sociale contient le nom).
 - [x] Témoins : un seul, la session (essentiel) → pas de bannière de témoins nécessaire
@@ -133,7 +133,7 @@ Libres au 2026-11-22 (`brand.json`) : `aucomplet.ca`, `aucomplet.com`, `aucomple
 - [x] rebrand sweep clean
 - [x] store listing passes (stores later)
 - [x] production build passes
-- [ ] privacy policy and terms live, every processor listed (pages faites ; LEGAL à remplir, relecture par un avocat)
+- [x] privacy policy and terms live, every processor listed (ébauches ; relecture par un avocat recommandée)
 - [x] account deletion works
 - [~] favicon, titles, OG image, emails, app icon are yours (icône provisoire d'après le brief)
 

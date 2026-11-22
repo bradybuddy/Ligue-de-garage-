@@ -6,10 +6,10 @@ export const APP_TAGLINE = "Ton équipe au complet, à tout coup.";
 // Renseignements légaux (pages /confidentialite et /conditions). À remplir par le propriétaire avant la mise en ligne :
 // scripts/preflight.mjs échoue tant qu'il reste « À REMPLIR ».
 export const LEGAL = {
-  entity: "À REMPLIR : nom de l'entreprise ou de la personne qui exploite l'appli",
-  address: "À REMPLIR : ville, Québec",
-  privacyOfficer: "À REMPLIR : nom et titre de la personne responsable de la protection des renseignements personnels",
-  contactEmail: "À REMPLIR : confidentialite@tondomaine.ca",
-  supportEmail: "À REMPLIR : aide@tondomaine.ca",
+  entity: "Jean Claude Houle",
+  address: "Mirabel (Québec)",
+  privacyOfficer: "Jean Claude Houle",
+  contactEmail: "beerbuddy@gamail.com",
+  supportEmail: "beerbuddy@gamail.com",
   updatedOn: "2026-11-22",
 };
