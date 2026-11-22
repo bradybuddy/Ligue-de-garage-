@@ -9,7 +9,7 @@ export const LEGAL = {
   entity: "Jean Claude Houle",
   address: "Mirabel (Québec)",
   privacyOfficer: "Jean Claude Houle",
-  contactEmail: "beerbuddy@gamail.com",
-  supportEmail: "beerbuddy@gamail.com",
+  contactEmail: "beerbuddy@gmail.com",
+  supportEmail: "beerbuddy@gmail.com",
   updatedOn: "2026-11-22",
 };
