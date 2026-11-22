@@ -1,5 +1,7 @@
 "use server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { AFTER_CONFIRM_COOKIE } from "@/lib/supabase/config";
 import { z } from "zod";
 import { signIn, signUp } from "@/lib/data";
 import { clearSession, currentUser, setSession, supabaseAuthEnabled } from "@/lib/auth";
@@ -62,7 +64,11 @@ export async function signUpAction(_: FormState, fd: FormData): Promise<FormStat
     });
     if (error) return { error: authMessage(error.code, "L'inscription n'a pas marché. Réessaie dans un instant."), values };
     // Courriel déjà utilisé : Supabase répond « succès » sans session ni identité. Même message dans les deux cas.
-    if (!data.session) return { ok: true, values: { email: d.email } };
+    if (!data.session) {
+      // Le lien du courriel de confirmation ramène toujours à « / » : on retient où la personne allait (ex. une invitation)
+      if (next !== "/") (await cookies()).set(AFTER_CONFIRM_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 3 });
+      return { ok: true, values: { email: d.email } };
+    }
   } else {
     try {
       await setSession((await signUp({ ...d, phone: d.phone || null })).id);
