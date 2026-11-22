@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 // Calendrier iCalendar (RFC 5545). Heures émises en UTC avec « Z » : aucun calendrier ne peut
 // se tromper de fuseau au changement d'heure (bogue reproché à l'original).
 
@@ -31,7 +32,7 @@ function fold(line: string): string {
 
 export function buildCalendar(name: string, events: IcsEvent[], now = new Date()): string {
   const lines = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Buddy & Beer//Horaire//FR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//${APP_NAME}//Horaire//FR`, "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
     `X-WR-CALNAME:${esc(name)}`, "REFRESH-INTERVAL;VALUE=DURATION:PT1H", "X-PUBLISHED-TTL:PT1H",
   ];
   for (const e of events) {

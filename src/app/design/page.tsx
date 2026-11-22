@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/brand";
 
 import { useEffect, useState, type ReactNode } from "react";
 import { CalendarPlus, Moon, Send, Sun, Users } from "lucide-react";
@@ -66,7 +67,7 @@ export default function DesignPage() {
     <div className="min-h-dvh pb-24">
       <header className="sticky top-0 z-10 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-wide items-center justify-between px-4">
-          <p className="font-display text-xl font-bold">Buddy &amp; Beer · Système de design</p>
+          <p className="font-display text-xl font-bold">{APP_NAME} · Système de design</p>
           <Button
             variant="ghost"
             size="icon"

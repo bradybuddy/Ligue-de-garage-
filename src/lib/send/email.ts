@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import "server-only";
 import { failFromResponse, isProd, SendError, type SendResult } from "./config";
 
@@ -10,7 +11,7 @@ export interface EmailMessage { to: string; subject: string; text: string; unsub
  *  - console : développement sans rien
  */
 export async function sendEmail(m: EmailMessage): Promise<SendResult> {
-  const from = process.env.EMAIL_FROM ?? "Buddy & Beer <noreply@buddyandbeer.local>";
+  const from = process.env.EMAIL_FROM ?? `${APP_NAME} <noreply@buddyandbeer.local>`;
   const headers: Record<string, string> = {};
   if (m.unsubscribeUrl) {
     headers["List-Unsubscribe"] = `<${m.unsubscribeUrl}>`;

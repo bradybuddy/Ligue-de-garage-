@@ -1,8 +1,9 @@
+import { APP_NAME } from "@/lib/brand";
 import { requireUser } from "@/lib/auth";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { CreateLeagueForm } from "@/components/app/league-forms";
 
-export const metadata = { title: "Créer une ligue · Buddy & Beer" };
+export const metadata = { title: `Créer une ligue · ${APP_NAME}` };
 
 /** L01 — Créer une ligue */
 export default async function Page() {

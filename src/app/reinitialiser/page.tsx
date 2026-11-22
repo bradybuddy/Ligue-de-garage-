@@ -1,9 +1,10 @@
+import { APP_NAME } from "@/lib/brand";
 import { redirect } from "next/navigation";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { ResetPasswordForm } from "@/components/app/auth-forms";
 import { currentUser } from "@/lib/auth";
 
-export const metadata = { title: "Nouveau mot de passe · Buddy & Beer" };
+export const metadata = { title: `Nouveau mot de passe · ${APP_NAME}` };
 
 export default async function Page() {
   if (!(await currentUser())) redirect("/connexion?lien=expire");

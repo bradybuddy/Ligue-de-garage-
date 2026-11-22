@@ -53,7 +53,7 @@ export default async function Page({ params }: { params: Promise<{ teamId: strin
         </section>
       ) : (
         <EmptyState icon={<CalendarPlus />} title="Aucun match à venir"
-          body={manager ? "Ajoute ton prochain match : tout le monde reçoit la question « t'es là? » 48 h avant." : "Ton gérant n'a pas encore mis l'horaire. On t'avertit dès qu'il est là."}
+          body={manager ? `Ajoute ton prochain match : tout le monde reçoit la question « t'es là? » ${team.reminderHoursBefore} h avant.` : "Ton gérant n'a pas encore mis l'horaire. On t'avertit dès qu'il est là."}
           action={manager ? <Link href={`${base}/horaire/nouveau`} className="inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent">Ajouter un match</Link> : undefined} />
       )}
 

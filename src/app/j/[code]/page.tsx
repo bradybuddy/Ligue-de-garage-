@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
@@ -6,7 +7,7 @@ import { getInvitePreview, listMyTeams } from "@/lib/data";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { JoinButton } from "@/components/app/join-forms";
 
-export const metadata = { title: "Rejoindre une équipe · Buddy & Beer", robots: { index: false } };
+export const metadata = { title: `Rejoindre une équipe · ${APP_NAME}`, robots: { index: false } };
 
 /** S03 — Rejoindre une équipe par lien */
 export default async function Page({ params }: { params: Promise<{ code: string }> }) {

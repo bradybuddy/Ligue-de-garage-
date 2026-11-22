@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import { redirect } from "next/navigation";
 import { unsubscribeEmail } from "@/lib/data";
 import { readUnsubscribeToken } from "@/lib/unsubscribe";
@@ -5,7 +6,7 @@ import { AuthLayout } from "@/components/app/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/ui/feedback";
 
-export const metadata = { title: "Désabonnement · Buddy & Beer", robots: { index: false } };
+export const metadata = { title: `Désabonnement · ${APP_NAME}`, robots: { index: false } };
 
 const labels: Record<string, string> = {
   reminder: "les rappels de match", spare_invite: "les invitations de spare", waitlist: "les avis de liste d'attente", beer: "les avis de tournée",

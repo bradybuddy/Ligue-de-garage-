@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/brand";
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { Plus, Trash2 } from "lucide-react";
@@ -67,7 +68,7 @@ export function AddTeamForm({ leagueId, divisions }: { leagueId: string; divisio
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-semibold">Comment</legend>
         <label className="flex min-h-11 items-start gap-3"><input type="radio" name="how" value="code" checked={how === "code"} onChange={() => setHow("code")} className="mt-1 size-5 accent-accent" />
-          <span><span className="font-semibold">L&apos;équipe utilise déjà Buddy &amp; Beer</span><br /><span className="text-sm text-muted">Son gérant te donne le code d&apos;équipe (dans son alignement).</span></span></label>
+          <span><span className="font-semibold">L&apos;équipe utilise déjà {APP_NAME}</span><br /><span className="text-sm text-muted">Son gérant te donne le code d&apos;équipe (dans son alignement).</span></span></label>
         <label className="flex min-h-11 items-start gap-3"><input type="radio" name="how" value="new" checked={how === "new"} onChange={() => setHow("new")} className="mt-1 size-5 accent-accent" />
           <span><span className="font-semibold">Créer l&apos;équipe pour elle</span><br /><span className="text-sm text-muted">Tu lui envoies ensuite son code pour que les joueurs la rejoignent.</span></span></label>
       </fieldset>

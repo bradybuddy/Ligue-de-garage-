@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import { Check, MapPin, X } from "lucide-react";
 import { getTokenContext } from "@/lib/data";
 import { fmtLongDate, fmtTime } from "@/lib/time";
@@ -7,7 +8,7 @@ import { Banner } from "@/components/ui/feedback";
 import { StatusPill } from "@/components/ui/badges";
 import { respondTokenAction } from "@/app/actions/token";
 
-export const metadata = { title: "Ta réponse · Buddy & Beer", robots: { index: false } };
+export const metadata = { title: `Ta réponse · ${APP_NAME}`, robots: { index: false } };
 
 /** Lien IN/OUT du courriel. GET n'écrit jamais : la réponse part par POST. */
 export default async function Page({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ s?: string; ok?: string; erreur?: string }> }) {

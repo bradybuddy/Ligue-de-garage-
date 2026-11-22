@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, Mail, Bell } from "lucide-react";
@@ -10,7 +11,7 @@ import { devReplyAction, devTickAction } from "@/app/actions/dev";
 import { cn } from "@/lib/cn";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Simulateur · Buddy & Beer" };
+export const metadata = { title: `Simulateur · ${APP_NAME}` };
 
 /** Outil de dev : simule Twilio (textos) et la tâche planifiée. Absent en production. */
 export default async function Page({ searchParams }: { searchParams: Promise<{ tel?: string }> }) {

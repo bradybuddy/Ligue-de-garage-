@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 // Textes envoyés (texto, courriel, notif). Écrits pour Buddy & Beer, en français du Québec.
 import { fmtShortDate, fmtTime } from "./time";
 
@@ -16,14 +17,14 @@ export const sms = {
   confirmOut: () => `👍 Noté, t'es OUT. Merci d'avoir répondu!`,
   pickOne: (opts: { code: string; label: string }[]) =>
     `Tu as ${opts.length} matchs en attente. Réponds ${opts.map((o) => `Y ${o.code} (${o.label})`).join(" ou ")}. Même chose avec N.`,
-  nothingPending: () => `Rien en attente pour ce numéro. Ouvre l'appli Buddy & Beer pour répondre.`,
+  nothingPending: () => `Rien en attente pour ce numéro. Ouvre l'appli ${APP_NAME} pour répondre.`,
   unknownCode: () => `Code inconnu. Réponds Y ou N, suivi du code reçu.`,
-  help: () => `Buddy & Beer : réponds Y (je suis là) ou N (je suis pas là). STOP pour ne plus recevoir de textos.`,
+  help: () => `${APP_NAME} : réponds Y (je suis là) ou N (je suis pas là). STOP pour ne plus recevoir de textos.`,
   notUnderstood: () => `Pas compris 🙂 Réponds Y (je suis là) ou N (je suis pas là).`,
   promoted: (e: EvCtx) => `🎉 Une place s'est libérée : t'es IN ${when(e)}${where(e)}. Réponds N si tu peux plus.`,
   spareInvite: (e: EvCtx, note?: string | null) =>
     `${e.teamName} cherche un spare : match ${when(e)}${where(e)}.${note ? ` « ${note.slice(0, 80)} »` : ""} Dispo? Réponds Y ou N.`,
-  stopped: () => `C'est fait, tu ne recevras plus de textos de Buddy & Beer. Réponds START pour les réactiver.`,
+  stopped: () => `C'est fait, tu ne recevras plus de textos de ${APP_NAME}. Réponds START pour les réactiver.`,
 };
 
 export const email = {

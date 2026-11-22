@@ -1,8 +1,9 @@
+import { APP_NAME } from "@/lib/brand";
 import { requireUser } from "@/lib/auth";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { CreateTeamForm } from "@/components/app/create-team-form";
 
-export const metadata = { title: "Créer une équipe · Buddy & Beer" };
+export const metadata = { title: `Créer une équipe · ${APP_NAME}` };
 
 /** S04 — Créer une équipe */
 export default async function Page() {

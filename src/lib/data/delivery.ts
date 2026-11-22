@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 // Livraison de la file d'envoi (outbox) : texto, courriel, push.
 // - « for update skip locked » : deux tick en même temps ne prennent jamais le même message
 // - réessais : 1 min, 4 min, 16 min, puis « failed » (journal des échecs = lignes failed + error)
@@ -90,7 +91,7 @@ async function deliverOne(row: Row): Promise<"sent" | "skipped" | "deferred" | "
     if (channel === "email") {
       if (!ctx.email) return finish(row, "skipped", "pas de courriel");
       const unsubscribeUrl = `${APP_URL}/api/desabonnement/${unsubscribeToken(ctx.id, row.category)}`;
-      const r = await sendEmail({ to: ctx.email, subject: subject ?? `${ctx.teamName} — Buddy & Beer`,
+      const r = await sendEmail({ to: ctx.email, subject: subject ?? `${ctx.teamName} — ${APP_NAME}`,
         text: `${body}\n\n—\nNe plus recevoir ce type de courriel : ${APP_URL}/desabonnement/${unsubscribeToken(ctx.id, row.category)}`, unsubscribeUrl });
       return finish(row, "sent", null, r.provider, r.id, ctx.email, "email");
     }

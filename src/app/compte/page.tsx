@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { requireUser, supabaseAuthEnabled } from "@/lib/auth";
@@ -13,7 +14,7 @@ import { CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOutAction, signOutEverywhereAction } from "@/app/actions/auth";
 
-export const metadata = { title: "Mon compte · Buddy & Beer" };
+export const metadata = { title: `Mon compte · ${APP_NAME}` };
 
 /** S26 — Mon compte (partiel : profil, notifs de l'appareil, sessions, suppression) */
 export default async function Page() {

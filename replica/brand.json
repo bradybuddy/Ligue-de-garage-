@@ -1,0 +1,41 @@
+{
+  "name": {
+    "current": "Buddy & Beer",
+    "recommended": "Au Complet",
+    "decision": "à prendre par le propriétaire (voir brand.md) ; changer src/lib/brand.ts + les fichiers listés dans outside_brand_ts",
+    "tagline": "Ton équipe au complet, à tout coup."
+  },
+  "avoid": {
+    "names": ["BenchApp", "Bench App", "benchapp", "Benchapp"],
+    "terms": ["Chatter", "Drink duty", "Finder", "Health Check", "Nunito Bench"],
+    "domains": ["benchapp.com", "feedback.benchapp.com", "help.benchapp.com"],
+    "colors": ["#2F6BEB", "#070B1D", "#F6F8FB", "#4B5A70", "#93C5FD"],
+    "shapes": ["écusson (shield) : forme du logo de l'original"],
+    "fonts": ["Nunito"]
+  },
+  "domains": {
+    "checked_on": "2026-11-22",
+    "checked_with": "outil de disponibilité du registre (connecteur Shopify) ; point dans le temps, pas une réservation",
+    "available": ["aucomplet.ca", "aucomplet.com", "aucomplet.app", "buddyandbeer.ca", "buddyandbeer.com", "rondelle.app", "jeudisoir.ca"],
+    "unknown": ["rondelle.com", "rondelle.ca", "jeudisoir.com", "embarque.*"],
+    "chosen": null
+  },
+  "colors": {
+    "source": "replica/design/tokens.json (rôles inchangés, valeurs de marque)",
+    "brand": { "accent": "#F2A516", "accent-strong": "#8A5800", "ink": "#121722", "bg": "#F7F5F0" },
+    "status": { "in": "#167A3E", "out": "#C42B2B", "wait": "#6B3FD4" },
+    "contrast_failures": 0
+  },
+  "outside_brand_ts": [
+    "public/sw.js (titre par défaut des notifs)",
+    "supabase/templates/confirmation.html",
+    "supabase/templates/recovery.html",
+    "supabase/local/docker-compose.yml (expéditeur et sujets des courriels d'auth, en local)",
+    "package.json (name)",
+    "EMAIL_FROM (variable d'environnement)",
+    "Supabase en ligne : sujets des courriels d'auth dans le tableau de bord"
+  ],
+  "keep_stable": [
+    "UID des événements ICS (@buddyandbeer) : le changer dédoublerait les matchs dans les calendriers déjà abonnés"
+  ]
+}

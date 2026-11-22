@@ -387,7 +387,7 @@ create table messages (
 create index on messages (thread_id, created_at desc);
 create index on messages (author_member_id);
 
--- Une ligne par réaction : tous les noms s'affichent (bogue BenchApp évité)
+-- Une ligne par réaction : tous les noms s'affichent (plainte relevée dans les avis publics)
 create table message_reactions (
   id uuid primary key default gen_random_uuid(),
   message_id uuid not null references messages(id) on delete cascade,

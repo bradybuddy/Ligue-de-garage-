@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/brand";
 import { requireUser } from "@/lib/auth";
 import { getMember, getTeamForUser } from "@/lib/data";
 import { orNotFound } from "@/lib/guard";
@@ -19,7 +20,7 @@ export default async function Page({ params }: { params: Promise<{ teamId: strin
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <PageTitle title={m.displayName} back={back} sub={m.userId ? "A un compte Buddy & Beer." : "Pas de compte : il répond par texto ou courriel."} />
+        <PageTitle title={m.displayName} back={back} sub={m.userId ? "A un compte ${APP_NAME}." : "Pas de compte : il répond par texto ou courriel."} />
         <MemberForm teamId={teamId} memberId={m.id} canSetRole={me.role === "manager"} defaults={{
           displayName: m.displayName, email: m.email ?? "", phone: m.phone ? prettyPhone(m.phone) : "", class: m.class, role: m.role,
           position: m.position, jerseyNumber: m.jerseyNumber?.toString() ?? "", smsOptIn: m.smsOptIn ? "on" : "",

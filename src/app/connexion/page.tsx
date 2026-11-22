@@ -1,10 +1,11 @@
+import { APP_NAME } from "@/lib/brand";
 import { redirect } from "next/navigation";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { SignInForm } from "@/components/app/auth-forms";
 import { currentUser } from "@/lib/auth";
 import { Banner } from "@/components/ui/feedback";
 
-export const metadata = { title: "Connexion · Buddy & Beer" };
+export const metadata = { title: `Connexion · ${APP_NAME}` };
 
 const notices: Record<string, { tone: "info" | "warning" | "danger"; text: string }> = {
   expire: { tone: "warning", text: "Ce lien a expiré. Connecte-toi ou redemande un lien." },
