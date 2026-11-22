@@ -1,0 +1,66 @@
+feature,area,priority,original,clone,notes
+Création de compte et connexion,Compte,must,yes,no,S02
+Rejoindre une équipe par code ou lien,Compte,must,yes,no,S03
+Créer une équipe,Équipe,must,yes,no,S04
+Classes de joueurs (régulier/spare/spectateur/staff/vacances/blessé/suspendu),Alignement,must,yes,no,S11-S12; source I
+Rôles gérant / adjoint,Alignement,must,yes,no,E
+Importer l'alignement CSV/Excel,Alignement,should,yes,no,S13
+Ramener les joueurs de la saison passée,Alignement,should,yes,no,E
+Exporter l'alignement,Alignement,could,yes,no,E
+Classement des joueurs pour équilibrer les équipes,Alignement,could,yes,no,E
+Horaire : ajouter/modifier/supprimer un match,Horaire,must,yes,no,S06-S08
+Importer l'horaire CSV/Excel,Horaire,should,yes,no,S09
+Synchro auto de l'horaire de la ligue (iCal),Horaire,should,PRO,no,C
+Abonnement calendrier (ICS) pour le joueur,Horaire,must,yes,no,F; bogue d'heure avancée à éviter
+Assigner les chambres,Horaire,could,yes,no,E
+Réponse IN/OUT dans l'appli,Présences,must,yes,no,F02 cœur
+Réponse IN/OUT par courriel,Présences,must,yes,no,C
+Réponse IN/OUT par texto (Y/N),Présences,must,PRO,no,C; inclus chez nous
+Note sur la présence,Présences,should,yes,no,F
+Rappels automatiques avant le match (délai réglable),Présences,must,yes,no,E
+Relance manuelle des sans-réponse,Présences,should,yes,no,E
+Avis au gérant quand un joueur passe IN→OUT,Présences,must,yes,no,E
+Check-in automatique,Présences,could,yes,no,F
+Max joueurs / max gardiens,Présences,must,yes,no,G
+Invitations automatiques aux spares,Spares,must,PRO,no,G; notre argument #1; ajouter texto + notif (BenchApp = courriel seulement en auto)
+Invitation manuelle de spares (courriel/texto/notif),Spares,must,yes,no,S14
+Liste d'attente,Spares,must,yes,no,S15
+Liste d'attente auto (haut de liste ou premier qui accepte),Spares,must,PRO,no,H
+Frais de spare,Spares,should,yes,no,E
+Payer pour jouer (carte avant IN),Spares,could,PRO,no,C
+Formation / trios,Match,should,yes,no,S10
+Équipes Foncé/Pâle au hasard,Match,could,yes,no,E
+Rotation des bières auto,Bière,must,yes,no,J; notre identité Buddy & Beer
+Compteur de consommations,Bière,could,yes,no,J
+Se retirer de la rotation,Bière,must,yes,no,J
+Chat d'équipe + GIF + réactions,Communication,must,yes,no,S16; bogue de réactions à éviter
+Messages privés,Communication,should,yes,no,S17
+Diffusion courriel/texto/notif,Communication,must,partial PRO,no,S18
+Bulletins et sondages,Communication,should,PRO,no,S19
+Médias d'équipe,Communication,could,yes,no,E
+Contrôle des courriels (désabonnement facile),Communication,must,unclear,no,plainte L: 67 courriels/semaine
+Pointage rapide (score final),Stats,should,yes,no,E
+Pointeur complet (buts/passes/punitions/tirs),Stats,could,PRO,no,S23
+Stats joueurs + gardiens,Stats,should,yes,no,S24
+Parties jouées auto,Stats,should,yes,no,E
+Suivi des frais (payé/dû/en retard),Finances,should,yes,no,S20
+Relances de paiement par courriel,Finances,could,PRO,no,C
+Paiement par carte (Stripe),Finances,could,yes,no,S21
+Suivi des dépenses,Finances,could,PRO,no,C
+Renonciation (waiver) signée dans l'appli,Finances,could,PRO,no,C
+Covoiturage,Extras,could,yes,no,E
+Tâches/bénévoles,Extras,could,yes,no,E
+Saisons (démarrer/archiver),Équipe,should,yes,no,E
+Ligue : équipes par division,Ligue,must,League,no,L02
+Ligue : diffusion à toute la ligue,Ligue,must,League,no,L09
+Ligue : horaire central,Ligue,must,League,no,L03
+Ligue : générateur d'horaire équilibré,Ligue,should,League,no,L03; dur
+Ligue : arbitres et officiels,Ligue,should,League,no,L04
+Ligue : classement auto,Ligue,should,League,no,L05
+Ligue : meneurs,Ligue,could,League,no,L06
+Ligue : site public,Ligue,could,League,no,L08
+Ligue : inscriptions + bassin de joueurs,Ligue,could,League,no,L07
+Interface en français (Québec) d'abord,Différenciateur,must,unclear,no,à nous
+Zéro pub,Différenciateur,must,no,no,BenchApp a des pubs en gratuit (C; F BenchApp Plus)
+Nom/logo/couleurs/textes BenchApp,Hors-portée,skip,yes,no,marque de BenchApp
+Réseau de 60 000 équipes,Hors-portée,skip,yes,no,se bâtit pas en copiant
