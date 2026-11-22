@@ -1,0 +1,31 @@
+{
+  "_notes": {
+    "name": "APP_NAME pas encore tranché. La fiche utilise « Buddy & Beer » ; si c'est « Au Complet », remplacer app_store.name et play.title par les valeurs de alt_names, puis relancer scripts/check-listing.mjs.",
+    "language": "fr-CA (langue principale). Une fiche en-CA pourra suivre.",
+    "checked_by": "node scripts/check-listing.mjs (limites, mots interdits, mots du nom répétés dans les mots-clés, emoji, prétentions)"
+  },
+  "alt_names": {
+    "app_store_name": "Au Complet – Hockey de garage",
+    "play_title": "Au Complet – Hockey de garage"
+  },
+  "app_store": {
+    "name": "Buddy & Beer – Hockey garage",
+    "subtitle": "Présences, spares et textos",
+    "promotional_text": "Le jeudi soir, ça marche : les gars répondent Y ou N par texto, sans appli à jour, et les spares embarquent tout seuls quand il manque du monde.",
+    "keywords": "ligue,équipe,match,spare,remplaçant,horaire,texto,gérant,calendrier,aréna,rappel,dispo,attente",
+    "description": "Qui est là jeudi? Fini les 40 textos pour le savoir.\n\nPensée pour le hockey de garage au Québec, l'appli fait une chose et la fait à tout coup : ton équipe au complet le soir du match.\n\nCE QU'ON RÈGLE\n• Les gars répondent par texto. Le rappel part tout seul; ils répondent Y ou N, même s'ils n'ont jamais ouvert l'appli.\n• Les spares embarquent tout seuls. S'il manque du monde, on invite tes spares; le premier qui dit oui joue, les autres passent sur une liste d'attente juste.\n• Tu sais tout de suite qui lâche. Un joueur passe à OUT? Tu reçois une notif, et la première personne de la liste d'attente monte.\n• Le bon match à la bonne heure. Le calendrier de ton cell reste juste au changement d'heure.\n• Rien ne disparaît sans prévenir. Ton horaire et ton historique restent là; un changement est annoncé d'avance.\n• Tu contrôles tes avis. Chaque type d'avis, sur le canal que tu veux (notif, texto, courriel), et un désabonnement en un clic.\n\nL'ESSENTIEL N'EST JAMAIS PAYANT\nLa réponse par texto, les spares automatiques, la liste d'attente, la notif de désistement et les réactions sont inclus pour toutes les équipes. Pas de pub.\n\nAUSSI DANS L'APPLI\n• Horaire de la saison, chambres, adversaires et aréna\n• Maximum de joueurs et de gardiens par match\n• Classes de joueurs : régulier, spare, blessé, vacances…\n• Chat d'équipe avec réactions et messages à toute l'équipe\n• La tournée : l'appli choisit qui apporte la bière, à tour de rôle\n• Abonnement au calendrier de ton cell\n\nPOUR LES LIGUES\nDivisions, horaire central copié dans chaque équipe, pointage et classement automatique, annonces à toute la ligue. Le plan Ligue est payant, par équipe.\n\nEn français du Québec, d'abord. Le support répond en français.\n\nLa tournée de bières est réservée aux personnes d'âge légal; consomme avec modération.",
+    "privacy_policy_url": "À FAIRE : https://<domaine>/confidentialite",
+    "support_url": "À FAIRE : https://<domaine>/aide",
+    "marketing_url": "À FAIRE : https://<domaine>/",
+    "primary_category": "Sports",
+    "secondary_category": "Productivité",
+    "age_rating_notes": "Répondre « Peu fréquent/léger » à « Usage ou mention d'alcool, de tabac ou de drogues » (tournée de bières). Résultat probable : 12+ ou 17+ selon le questionnaire actuel ; à confirmer dans App Store Connect."
+  },
+  "play": {
+    "title": "Buddy & Beer – Hockey garage",
+    "short_description": "Qui est là jeudi? IN/OUT par texto, spares automatiques et liste d'attente.",
+    "full_description": "SAME_AS_APP_STORE_DESCRIPTION",
+    "category": "Sports",
+    "content_rating_notes": "Questionnaire IARC : référence à l'alcool (tournée de bières), aucune vente. Interaction entre utilisateurs : oui (chat d'équipe)."
+  }
+}

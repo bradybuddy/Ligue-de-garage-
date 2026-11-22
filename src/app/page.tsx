@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Beer, KeyRound, Trophy, UsersRound } from "lucide-react";
 import { currentUser } from "@/lib/auth";
 import { listMyLeagues, listMyTeams } from "@/lib/data";
+import { Landing } from "@/components/app/landing";
 
 /** S01 — Accueil / choix du rôle */
 export default async function Home() {
@@ -13,6 +14,9 @@ export default async function Home() {
     if (teams.length === 1 && leagues.length === 0) redirect(`/t/${teams[0]!.team.id}`);
     if (teams.length === 0 && leagues.length === 1) redirect(`/ligue/${leagues[0]!.id}`);
     if (teams.length + leagues.length > 1) redirect("/equipes");
+  } else {
+    // Visiteur : la page publique (replica/launch/landing.md).
+    return <Landing />;
   }
   const cards = [
     { href: "/equipes/nouvelle", Icon: UsersRound, title: "Je gère une équipe", body: "Crée ton équipe, ajoute tes joueurs, on s'occupe des présences et des spares." },
