@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Ban, MapPin, Radio, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { StatusPill, type AttendanceStatus } from "./badges";
@@ -32,7 +33,7 @@ export function MatchCard({
   const result = score ? (score.us > score.them ? "V" : score.us < score.them ? "D" : "N") : null;
 
   return (
-    <a
+    <Link
       href={href}
       className={cn(
         "group flex min-w-0 items-stretch gap-3 rounded-lg sm:gap-4 border border-border bg-surface p-4 shadow-sm transition-ui hover:border-border-input",
@@ -77,6 +78,6 @@ export function MatchCard({
           </span>
         )}
       </div>
-    </a>
+    </Link>
   );
 }

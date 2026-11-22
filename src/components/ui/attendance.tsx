@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import { Check, Clock, LoaderCircle, Lock, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { AttendanceStatus } from "./badges";
@@ -18,14 +19,18 @@ interface AttendanceToggleProps {
  * En attente = IN demandé mais match complet : le bouton IN l'affiche.
  */
 export function AttendanceToggle({ value, onChange, lockedReason, pending = null, size = "lg" }: AttendanceToggleProps) {
-  const disabled = !!lockedReason || pending !== null;
+  // Verrouillé = vraiment désactivé. En cours d'envoi = aria-disabled : le bouton garde le focus clavier.
+  const locked = !!lockedReason;
+  const busy = pending !== null;
   const h = size === "lg" ? "h-14 text-lg" : "h-11 text-base";
   const isIn = value === "in" || value === "waitlist";
+  const inRef = useRef<HTMLButtonElement>(null);
+  const outRef = useRef<HTMLButtonElement>(null);
+  const pick = (v: "in" | "out") => { if (!locked && !busy) onChange(v); };
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (disabled) return;
-    if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); onChange("in"); }
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); onChange("out"); }
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); inRef.current?.focus(); pick("in"); }
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); outRef.current?.focus(); pick("out"); }
   };
 
   return (
@@ -34,17 +39,19 @@ export function AttendanceToggle({ value, onChange, lockedReason, pending = null
         <button
           type="button"
           role="radio"
+          ref={inRef}
           aria-checked={isIn}
           tabIndex={value === "out" ? -1 : 0}
-          disabled={disabled}
-          onClick={() => onChange("in")}
+          disabled={locked}
+          aria-disabled={busy || undefined}
+          onClick={() => pick("in")}
           className={cn(
             "flex items-center justify-center gap-2 rounded-md border-2 font-display font-bold uppercase tracking-wide transition-ui",
             h,
             value === "in" && "border-in bg-in text-on-in",
             value === "waitlist" && "border-wait bg-wait text-on-wait",
             !isIn && "border-border-input bg-surface text-text hover:bg-in-soft hover:text-on-in-soft",
-            disabled && "cursor-not-allowed opacity-60",
+            (locked || busy) && "cursor-not-allowed opacity-60",
           )}
         >
           {pending === "in" ? <LoaderCircle aria-hidden className="size-5 animate-spin" />
@@ -55,17 +62,19 @@ export function AttendanceToggle({ value, onChange, lockedReason, pending = null
         <button
           type="button"
           role="radio"
+          ref={outRef}
           aria-checked={value === "out"}
           tabIndex={value === "out" ? 0 : -1}
-          disabled={disabled}
-          onClick={() => onChange("out")}
+          disabled={locked}
+          aria-disabled={busy || undefined}
+          onClick={() => pick("out")}
           className={cn(
             "flex items-center justify-center gap-2 rounded-md border-2 font-display font-bold uppercase tracking-wide transition-ui",
             h,
             value === "out"
               ? "border-out bg-out text-on-out"
               : "border-border-input bg-surface text-text hover:bg-out-soft hover:text-on-out-soft",
-            disabled && "cursor-not-allowed opacity-60",
+            (locked || busy) && "cursor-not-allowed opacity-60",
           )}
         >
           {pending === "out" ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : <X aria-hidden className="size-5" strokeWidth={3} />}

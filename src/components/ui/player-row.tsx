@@ -8,17 +8,19 @@ interface PlayerRowProps {
   playerClass?: PlayerClass;
   status?: AttendanceStatus;
   note?: string;
+  /** Infos secondaires (source, heure, rôle) — pas une note du joueur. */
+  meta?: string;
   beer?: boolean;
   action?: React.ReactNode;
 }
 
-/** Rangée de joueur. Le nom n'est jamais tronqué sous 2 lignes (bogue « noms illisibles » évité). */
-export function PlayerRow({ name, jersey, position, playerClass, status, note, beer, action }: PlayerRowProps) {
+/** Rangée de joueur. Le nom n'est jamais tronqué (plainte « noms illisibles » chez l'original). */
+export function PlayerRow({ name, jersey, position, playerClass, status, note, meta, beer, action }: PlayerRowProps) {
   return (
     <li className="flex min-h-14 items-center gap-3 px-4 py-2">
       <Avatar name={name} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="line-clamp-2 break-words font-semibold text-text">
+        <span className="break-words font-semibold text-text [hyphens:auto]">
           {name}
           {jersey !== undefined && <span className="ml-1.5 font-normal text-muted tabular">#{jersey}</span>}
           {position === "goalie" && <span className="ml-1.5 text-sm font-semibold text-accent-strong">Gardien</span>}
@@ -31,9 +33,10 @@ export function PlayerRow({ name, jersey, position, playerClass, status, note, b
         {note && (
           <span className="flex items-start gap-1 text-sm text-muted">
             <MessageSquareText aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-            <span className="line-clamp-2">{note}</span>
+            <span className="line-clamp-3">{note}</span>
           </span>
         )}
+        {meta && <span className="text-sm text-muted">{meta}</span>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {playerClass && <ClassBadge value={playerClass} />}
