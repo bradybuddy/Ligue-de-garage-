@@ -6,6 +6,9 @@ import { prettyPhone } from "@/lib/sms";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { DeleteAccountForm } from "@/components/app/auth-forms";
 import { PushToggle } from "@/components/app/push-toggle";
+import { CopyButton } from "@/components/app/copy-button";
+import { APP_URL } from "@/lib/messages";
+import { CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOutAction, signOutEverywhereAction } from "@/app/actions/auth";
 
@@ -30,6 +33,30 @@ export default async function Page() {
           <p className="text-sm text-muted">Les notifs sont gratuites et instantanées. Les rappels par texto et courriel continuent sans elles. Chaque courriel a un lien pour te désabonner de ce type d&apos;envoi.</p>
           <PushToggle />
         </section>
+        {teams.length > 0 && (
+          <section aria-labelledby="cal-h" className={section}>
+            <h2 id="cal-h" className="font-bold">Mon calendrier</h2>
+            <p className="text-sm text-muted">Les matchs s&apos;ajoutent tout seuls à ton calendrier et se mettent à jour (heure, aréna, annulation). Les heures restent justes au changement d&apos;heure.</p>
+            {teams.map(({ team, me }) => {
+              const https = `${APP_URL}/api/calendrier/${me.calendarToken}.ics`;
+              const webcal = https.replace(/^https?:/, "webcal:");
+              return (
+                <div key={team.id} className="flex flex-col gap-2 rounded-md bg-surface-2 p-3">
+                  <p className="font-semibold">{team.name}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <a href={webcal} className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-3 text-sm font-semibold text-on-accent">
+                      <CalendarPlus aria-hidden className="size-4" />iPhone, Mac, Outlook
+                    </a>
+                    <a href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex h-10 items-center rounded-md border border-border-input bg-surface px-3 text-sm font-semibold">Google Agenda</a>
+                    <CopyButton text={https} label="Copier le lien" />
+                  </div>
+                </div>
+              );
+            })}
+            <p className="text-xs text-muted">Ce lien est personnel : ne le partage pas.</p>
+          </section>
+        )}
         <section aria-labelledby="sess-h" className={section}>
           <h2 id="sess-h" className="font-bold">Connexion</h2>
           <div className="flex flex-wrap gap-2">

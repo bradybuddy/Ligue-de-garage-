@@ -24,5 +24,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Pas sur les fichiers statiques ni les webhooks (Twilio, cron) qui n'ont pas de session
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|sw.js|api/webhooks|api/cron|api/desabonnement|.*\\.(?:svg|png|jpg|ico|webmanifest)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|sw.js|api/webhooks|api/cron|api/desabonnement|api/calendrier|.*\\.(?:svg|png|jpg|ico|webmanifest)$).*)"],
 };

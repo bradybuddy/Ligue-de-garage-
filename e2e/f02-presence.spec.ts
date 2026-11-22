@@ -193,3 +193,22 @@ test.describe("F04 — liste d'attente automatique", () => {
     await expect(inRegion(page).getByText("Ali Régulier")).toBeVisible();
   });
 });
+
+test.describe("Calendrier ICS", () => {
+  test("F02-E12 abonnement calendrier : heures UTC, ma réponse, annulation", async ({ page, request }) => {
+    const { base } = await (await import("./fixtures")).teamWithManager(page);
+    await addMatch(page, base, { date: "2027-03-14", time: "21:15", opponent: "Les Castors" }); // jour du passage à l'heure avancée
+    await page.goto("/compte");
+    await expect(page.getByRole("heading", { name: "Mon calendrier" })).toBeVisible();
+    const href = await page.getByRole("link", { name: /iPhone, Mac, Outlook/ }).getAttribute("href");
+    expect(href).toMatch(/^webcal:\/\/.+\/api\/calendrier\/[a-f0-9]{36}\.ics$/);
+    const r = await request.get(href!.replace(/^webcal:/, "http:"));
+    expect(r.status()).toBe(200);
+    expect(r.headers()["content-type"]).toContain("text/calendar");
+    const ics = await r.text();
+    expect(ics).toContain("DTSTART:20270315T011500Z"); // 21 h 15 HAE = 01 h 15 UTC le lendemain
+    expect(ics).toMatch(/SUMMARY:.* contre Les Castors/);
+    expect(ics).toContain("Ta réponse : pas encore répondu");
+    expect((await request.get("/api/calendrier/" + "0".repeat(36) + ".ics")).status()).toBe(404);
+  });
+});

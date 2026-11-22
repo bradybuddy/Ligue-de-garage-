@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { buildCalendar } from "../src/lib/ics";
 import assert from "node:assert/strict";
 import { zonedToUtc, utcToZonedParts, fmtTime } from "../src/lib/time";
 import { disambiguationLabels, parseSmsReply, normalizePhone } from "../src/lib/sms";
@@ -30,3 +31,19 @@ test("lecture des textos", () => {
   assert.deepEqual(disambiguationLabels([{ teamName: "A", day: "jeu 26 nov", time: "21 h" }, { teamName: "A", day: "jeu 3 déc", time: "21 h" }]), ["jeu 26 nov", "jeu 3 déc"]);
 });
 
+
+test("calendrier ICS : UTC avec Z, échappement, lignes de 75 octets max, annulé", () => {
+  const ics = buildCalendar("Les Écureuils, de Saint-Jean; vraiment", [
+    { uid: "a", start: zonedToUtc("2026-10-29", "21:15").toISOString(), end: null, summary: "Les Écureuils contre Les Castors, glace 2", location: "Aréna Michel-Normandin; glace 2",
+      description: "Ta réponse : IN\nRépondre : https://exemple.ca/t/x/matchs/y-tres-long-pour-forcer-le-repli-de-ligne-a-75-octets-avec-des-accents-éééééééé", url: "https://exemple.ca", cancelled: false, updatedAt: "2026-11-01T00:00:00Z" },
+    { uid: "b", start: zonedToUtc("2026-11-05", "21:15").toISOString(), end: null, summary: "Match", location: null, description: "", url: "https://exemple.ca", cancelled: true, updatedAt: "2026-11-01T00:00:00Z" },
+  ], new Date("2026-11-22T00:00:00Z"));
+  assert.match(ics, /DTSTART:20261030T011500Z\r\n/); // avant le changement d'heure : UTC-4
+  assert.match(ics, /DTSTART:20261106T021500Z\r\n/); // après : UTC-5 — même 21 h 15 local
+  assert.match(ics, /DTEND:20261030T024500Z/);          // 90 min par défaut
+  assert.match(ics, /X-WR-CALNAME:Les Écureuils\\, de Saint-Jean\\; vraiment/);
+  assert.match(ics, /SUMMARY:ANNULÉ — Match/);
+  assert.match(ics, /STATUS:CANCELLED/);
+  for (const line of ics.split("\r\n")) assert.ok(Buffer.byteLength(line) <= 75, `ligne trop longue : ${line}`);
+  assert.ok(ics.endsWith("END:VCALENDAR\r\n"));
+});
