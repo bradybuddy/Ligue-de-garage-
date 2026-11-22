@@ -1,4 +1,8 @@
+import { readFileSync } from "node:fs";
 import { expect, expectAccessible, expectNoHorizontalScroll, test } from "./fixtures";
+
+// Les noms à éviter viennent de brand.json : le nom de l'original ne s'écrit nulle part dans le code.
+const avoid: string[] = JSON.parse(readFileSync("replica/brand.json", "utf8")).avoid.names;
 
 // Page publique (replica/launch/landing.md) : visiteur pas connecté.
 test.describe("S00 — accueil public", () => {
@@ -31,6 +35,6 @@ test.describe("S00 — accueil public", () => {
   test("S00 aucune fausse preuve ni nom de l'original", async ({ page }) => {
     await page.goto("/");
     const text = (await page.locator("body").innerText()).toLowerCase();
-    for (const bad of ["benchapp", "bench app", "étoiles", "★", "témoignage", "ils nous font confiance"]) expect(text).not.toContain(bad);
+    for (const bad of [...avoid.map((n) => n.toLowerCase()), "étoiles", "★", "témoignage", "ils nous font confiance"]) expect(text).not.toContain(bad);
   });
 });

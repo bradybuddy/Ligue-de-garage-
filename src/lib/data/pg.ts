@@ -417,10 +417,14 @@ export async function runTick(at: Date = new Date()): Promise<{ reminders: numbe
     await tx`update outbox set status = 'pending', locked_at = null where status = 'sending' and locked_at < now() - interval '10 minutes'`;
     await tx`delete from response_tokens where expires_at < now() - interval '7 days'`;
     await tx`delete from inbound_sms where created_at < now() - interval '90 days'`;
-    await tx`delete from outbox where status in ('sent','skipped') and created_at < now() - interval '90 days'`;
+    await tx`delete from outbox where status in ('sent','skipped','failed') and created_at < now() - interval '90 days'`;
   });
   const d = await deliverOutbox({ limit: 200 });
-  return { reminders, spares, beer, delivered: d.sent, failed: d.failed };
+  const result = { reminders, spares, beer, delivered: d.sent, failed: d.failed };
+  // Battement de cœur : la page /etat et la surveillance savent que les rappels partent.
+  await asService((tx) => tx`insert into system_heartbeat (name, at, detail) values ('tick', now(), ${tx.json(result as never)})
+    on conflict (name) do update set at = excluded.at, detail = excluded.detail`);
+  return result;
 }
 
 // ───────────── Réponses entrantes ─────────────
@@ -1164,4 +1168,17 @@ export async function listLeagueBroadcasts(userId: string, leagueId: string): Pr
       from outbox where dedupe_key like 'lbc:%' and split_part(dedupe_key, ':', 2) in ${s(rows.map((r) => r.id))} group by 1`) : [];
     return rows.map((r) => ({ ...r, recipients: counts.find((c) => c.id === r.id)?.n ?? 0 }));
   });
+}
+
+/** Santé du système, sans aucune donnée personnelle (page /etat, route /api/sante). */
+export interface SystemHealth { lastTickAt: string | null; tickAgeSeconds: number | null; outboxWaitingOver10Min: number; outboxFailedLastHour: number }
+export async function systemHealth(): Promise<SystemHealth> {
+  const [r] = await asService((tx) => tx<{ h: Record<string, unknown> }[]>`select system_health() as h`);
+  const h = r!.h;
+  return {
+    lastTickAt: (h.last_tick_at ?? h.lastTickAt ?? null) as string | null,
+    tickAgeSeconds: (h.tick_age_seconds ?? h.tickAgeSeconds ?? null) as number | null,
+    outboxWaitingOver10Min: Number(h.outbox_waiting_over_10_min ?? h.outboxWaitingOver10Min ?? 0),
+    outboxFailedLastHour: Number(h.outbox_failed_last_hour ?? h.outboxFailedLastHour ?? 0),
+  };
 }

@@ -1,11 +1,12 @@
 "use client";
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /** Erreur inattendue dans une page : message en français, on garde la main (pas l'écran anglais de Next). */
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => { console.error(error.digest ?? error.message); }, [error]);
+  useEffect(() => { console.error(error.digest ?? error.message); Sentry.captureException(error); }, [error]);
   const offline = typeof navigator !== "undefined" && navigator.onLine === false;
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4">

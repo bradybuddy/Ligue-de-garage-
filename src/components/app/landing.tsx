@@ -221,6 +221,10 @@ export function Landing() {
         <div className="mx-auto flex max-w-wide flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm text-muted">
           <span>{APP_NAME} · fait au Québec, en français</span>
           <span>Support en français : on répond en moins de 24 h.</span>
+          <nav aria-label="Pages légales" className="flex gap-4">
+            <Link href="/confidentialite" className="underline underline-offset-4">Confidentialité</Link>
+            <Link href="/conditions" className="underline underline-offset-4">Conditions</Link>
+          </nav>
         </div>
       </footer>
     </div>

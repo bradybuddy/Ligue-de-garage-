@@ -64,7 +64,7 @@ Interface en français (Québec) d'abord,Différenciateur,must,unclear,yes,à no
 Zéro pub,Différenciateur,must,no,yes,BenchApp a des pubs en gratuit (C; F BenchApp Plus)
 Nom/logo/couleurs/textes BenchApp,Hors-portée,skip,yes,skip,marque de BenchApp
 Réseau de 60 000 équipes,Hors-portée,skip,yes,skip,se bâtit pas en copiant
-"Fiabilité visible : surveillance des erreurs, retour arrière en 1 clic, page d'état",Correctif,must,no,partial,"fixes.md #1 ; 64+ avis « plante / ne s'ouvre plus » ; 50 tests e2e déjà, Sentry et retour arrière au déploiement"
+"Fiabilité visible : surveillance des erreurs, retour arrière en 1 clic, page d'état",Correctif,must,no,yes,"fixes.md #1 ; 64+ avis « plante / ne s'ouvre plus » ; Sentry (sans données perso, actif avec SENTRY_DSN), /etat et /api/sante (battement du cron), CI GitHub (58 e2e + 19 base + 3 unités) à exiger sur Vercel ; retour arrière = Instant Rollback de Vercel"
 « Quoi de neuf » + aucune fonction retirée sans préavis,Correctif,should,no,no,fixes.md #2 ; 54 avis « cassé ou retiré par une mise à jour »
 Chat solide sur mobile (champ au-dessus du clavier),Correctif,should,no,partial,fixes.md #3 ; réactions avec tous les noms faites ; à tester sur vrais appareils
 "Essentiel jamais payant (texto Y/N, spares auto, alerte désistement, réactions)",Correctif,must,no,yes,fixes.md #4 ; tout est inclus aujourd'hui ; à confirmer dans la tarification (/replica-launch)

@@ -61,6 +61,9 @@ export function SignUpForm({ next }: { next?: string }) {
         {({ id, describedBy, invalid }) => <Input id={id} name="password" type="password" autoComplete="new-password" aria-describedby={describedBy} aria-invalid={invalid} />}
       </Field>
       <Button type="submit" size="lg" loading={pending}>Créer mon compte</Button>
+      <p className="text-center text-sm text-muted">
+        En créant ton compte, tu acceptes les <Link href="/conditions" className="underline underline-offset-4">conditions</Link> et la <Link href="/confidentialite" className="underline underline-offset-4">politique de confidentialité</Link>.
+      </p>
       <p className="text-center text-sm">
         Déjà un compte? <Link href={`/connexion${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-accent-strong underline underline-offset-4">Connecte-toi</Link>
       </p>

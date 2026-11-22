@@ -1,8 +1,11 @@
 "use client";
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { APP_NAME } from "@/lib/brand";
 
 /** Dernier filet : erreur dans le layout racine. Autonome (pas de CSS de l'appli garanti). */
-export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
+export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => { Sentry.captureException(error); }, [error]);
   return (
     <html lang="fr-CA">
       <body style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 480, margin: "15vh auto", color: "#121722", background: "#F7F5F0" }}>

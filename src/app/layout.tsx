@@ -6,8 +6,12 @@ import "@fontsource/barlow-condensed/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${APP_NAME}`,
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  title: APP_NAME,
   description: "Gère ton équipe de garage : présences, spares, tournée.",
+  applicationName: APP_NAME,
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
+  openGraph: { type: "website", locale: "fr_CA", siteName: APP_NAME },
 };
 
 export const viewport: Viewport = {
