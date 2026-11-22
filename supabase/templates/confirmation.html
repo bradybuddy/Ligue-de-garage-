@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="fr-CA">
+<body style="font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; color: #121722; line-height: 1.5;">
+  <h1 style="font-size: 22px;">Bienvenue dans Buddy &amp; Beer 🍺</h1>
+  <p>Il reste une étape : confirme ton courriel pour activer ton compte.</p>
+  <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next=/"
+        style="display: inline-block; background: #F2A516; color: #1C1300; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none;">Confirmer mon courriel</a></p>
+  <p style="color: #556070; font-size: 14px;">Ce n'est pas toi? Ignore ce courriel : aucun compte ne sera créé.</p>
+</body>
+</html>
