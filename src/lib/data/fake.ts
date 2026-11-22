@@ -3,8 +3,8 @@
 // set_attendance() / on_spot_freed() de replica/schema.sql.
 import { createHash, randomInt } from "node:crypto";
 import { APP_URL, email as emailTpl, push as pushTpl, sms as smsTpl } from "../messages";
-import { normalizePhone, parseSmsReply } from "../sms";
-import { fmtShortDate, zonedToUtc } from "../time";
+import { disambiguationLabels, normalizePhone, parseSmsReply } from "../sms";
+import { fmtShortDate, fmtTime, zonedToUtc } from "../time";
 import { db, genInviteCode, hexToken, iso, now, uid } from "./store";
 import {
   DomainError, type Attendance, type AttendanceStatus, type Channel, type EventDetail, type EventType, type Member,
@@ -503,10 +503,11 @@ export async function handleInboundSms(fromRaw: string, body: string, providerSi
     if (!match) return log(smsTpl.unknownCode());
     tok = match;
   } else if (pending.length > 1) {
-    return log(smsTpl.pickOne(pending.map((t) => {
-      const ev = requireEvent(t.eventId);
-      return { code: t.smsCode!, label: fmtShortDate(ev.startsAt, requireTeam(ev.teamId).timezone) };
-    })));
+    const labels = disambiguationLabels(pending.map((t) => {
+      const ev = requireEvent(t.eventId), team = requireTeam(ev.teamId);
+      return { teamName: team.name, day: fmtShortDate(ev.startsAt, team.timezone), time: fmtTime(ev.startsAt, team.timezone) };
+    }));
+    return log(smsTpl.pickOne(pending.map((t, i) => ({ code: t.smsCode!, label: labels[i]! }))));
   }
   const ev = requireEvent(tok.eventId);
   const final = await respond("system", ev.id, tok.memberId, intent.status, { source: "sms" });
@@ -552,3 +553,20 @@ export async function devListPhones() {
 export async function devAttendanceRows(): Promise<Attendance[]> {
   return db().attendance;
 }
+
+// ───────────── Avis et abonnements (démo : en mémoire) ─────────────
+const g2 = globalThis as unknown as { __bbPrefs?: Set<string>; __bbPush?: Map<string, { userId: string; endpoint: string }> };
+export async function unsubscribeEmail(memberId: string, category: string): Promise<{ teamName: string } | null> {
+  const m = db().members.find((x) => x.id === memberId);
+  if (!m) return null;
+  (g2.__bbPrefs ??= new Set()).add(`${memberId}:${category}:email`);
+  return { teamName: requireTeam(m.teamId).name };
+}
+export async function savePushSubscription(userId: string, sub: { endpoint: string; p256dh: string; auth: string; userAgent?: string }): Promise<void> {
+  (g2.__bbPush ??= new Map()).set(sub.endpoint, { userId, endpoint: sub.endpoint });
+}
+export async function deletePushSubscription(userId: string, endpoint: string): Promise<void> {
+  const s = g2.__bbPush?.get(endpoint);
+  if (s?.userId === userId) g2.__bbPush!.delete(endpoint);
+}
+export async function recordSmsStatus(_providerMessageId: string, _status: string, _errorCode?: string): Promise<void> {}

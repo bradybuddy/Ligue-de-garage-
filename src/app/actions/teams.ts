@@ -8,7 +8,7 @@ import { toFormError, type FormState } from "@/lib/guard";
 const NewTeam = z.object({
   name: z.string().trim().min(2, "Le nom de l'équipe, au moins 2 lettres.").max(60, "60 caractères maximum."),
   sport: z.enum(["hockey", "dek", "ringuette", "soccer", "balle", "autre"]),
-  maxPlayers: z.coerce.number({ invalid_type_error: "Un nombre, svp." }).int().min(1, "Au moins 1.").max(60, "60 maximum."),
+  maxPlayers: z.coerce.number({ error: "Un nombre, svp." }).int().min(1, "Au moins 1.").max(60, "60 maximum."),
 });
 
 export async function createTeamAction(_: FormState, fd: FormData): Promise<FormState> {

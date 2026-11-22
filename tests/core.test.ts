@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { zonedToUtc, utcToZonedParts, fmtTime } from "../src/lib/time";
-import { parseSmsReply, normalizePhone } from "../src/lib/sms";
+import { disambiguationLabels, parseSmsReply, normalizePhone } from "../src/lib/sms";
 import { db, resetStore } from "../src/lib/data/store";
 import * as data from "../src/lib/data/fake";
 
@@ -27,6 +27,9 @@ test("lecture des textos", () => {
   assert.equal(normalizePhone("(514) 555-1234"), "+15145551234");
   assert.equal(normalizePhone("1 514 555 1234"), "+15145551234");
   assert.equal(normalizePhone("555-1234"), null);
+  assert.deepEqual(disambiguationLabels([{ teamName: "A", day: "mer 25 nov", time: "21 h" }, { teamName: "B", day: "mer 25 nov", time: "22 h" }]), ["A, mer 25 nov", "B, mer 25 nov"]);
+  assert.deepEqual(disambiguationLabels([{ teamName: "A", day: "mer 25 nov", time: "21 h" }, { teamName: "A", day: "mer 25 nov", time: "23 h" }]), ["mer 25 nov, 21 h", "mer 25 nov, 23 h"]);
+  assert.deepEqual(disambiguationLabels([{ teamName: "A", day: "jeu 26 nov", time: "21 h" }, { teamName: "A", day: "jeu 3 déc", time: "21 h" }]), ["jeu 26 nov", "jeu 3 déc"]);
 });
 
 const setup = () => {

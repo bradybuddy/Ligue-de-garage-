@@ -43,3 +43,10 @@ export function parseSmsReply(body: string): SmsIntent {
   if (NO.has(first!)) return { kind: "answer", status: "out", code };
   return { kind: "unknown" };
 }
+
+/** Libellés pour départager plusieurs matchs en attente : équipe si elles diffèrent, heure si même jour. */
+export function disambiguationLabels(items: { teamName: string; day: string; time: string }[]): string[] {
+  const multiTeam = new Set(items.map((i) => i.teamName)).size > 1;
+  const sameDay = new Set(items.map((i) => i.day)).size < items.length;
+  return items.map((i) => [multiTeam ? i.teamName : null, i.day, sameDay && !multiTeam ? i.time : null].filter(Boolean).join(", "));
+}
