@@ -21,6 +21,8 @@ export const sms = {
   help: () => `Buddy & Beer : réponds Y (je suis là) ou N (je suis pas là). STOP pour ne plus recevoir de textos.`,
   notUnderstood: () => `Pas compris 🙂 Réponds Y (je suis là) ou N (je suis pas là).`,
   promoted: (e: EvCtx) => `🎉 Une place s'est libérée : t'es IN ${when(e)}${where(e)}. Réponds N si tu peux plus.`,
+  spareInvite: (e: EvCtx, note?: string | null) =>
+    `${e.teamName} cherche un spare : match ${when(e)}${where(e)}.${note ? ` « ${note.slice(0, 80)} »` : ""} Dispo? Réponds Y ou N.`,
   stopped: () => `C'est fait, tu ne recevras plus de textos de Buddy & Beer. Réponds START pour les réactiver.`,
 };
 
@@ -36,6 +38,22 @@ export const email = {
       `Je suis pas là → ${link}?s=out`,
       ``,
       `Un seul courriel par match. Pour changer tes avis : ${APP_URL}/compte`,
+    ].join("\n"),
+};
+
+export const spareEmail = {
+  subject: (e: EvCtx) => `${e.teamName} cherche un spare — ${when(e)}`,
+  body: (e: EvCtx, link: string, name: string, note?: string | null) =>
+    [
+      `Salut ${name.split(" ")[0]},`,
+      ``,
+      `${e.teamName} a besoin d'un spare pour le match ${when(e)}${e.opponent ? ` contre ${e.opponent}` : ""}${where(e)}.`,
+      ...(note ? [``, `Mot du gérant : ${note}`] : []),
+      ``,
+      `Je peux jouer → ${link}?s=in`,
+      `Pas cette fois → ${link}?s=out`,
+      ``,
+      `Premier arrivé, premier servi : si c'est complet, tu passes sur la liste d'attente.`,
     ].join("\n"),
 };
 

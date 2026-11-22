@@ -77,7 +77,13 @@ export default async function Page({ params, searchParams }: { params: Promise<{
         {d.groups.in.length ? d.groups.in.map((p) => row(p)) : <li className="px-4 py-3 text-muted">Personne encore.</li>}
       </PlayerList>
       {d.groups.waitlist.length > 0 && (
-        <PlayerList label="Liste d'attente" count={d.groups.waitlist.length}>{d.groups.waitlist.map((p) => row(p))}</PlayerList>
+        <div className="flex flex-col gap-2">
+          <PlayerList label="Liste d'attente" count={d.groups.waitlist.length}>{d.groups.waitlist.map((p) => row(p))}</PlayerList>
+          {canManage && open && <Link href={`${base}/matchs/${ev.id}/attente`} className="self-start text-sm font-semibold text-accent-strong underline underline-offset-4">Gérer la liste d&apos;attente</Link>}
+        </div>
+      )}
+      {d.groups.invited.length > 0 && (
+        <PlayerList label="Spares invités, sans réponse" count={d.groups.invited.length}>{d.groups.invited.map((p) => row(p))}</PlayerList>
       )}
       <PlayerList label="Pas répondu" count={d.groups.noReply.length}>
         {d.groups.noReply.length ? d.groups.noReply.map((p) => row(p)) : <li className="px-4 py-3 text-muted">Tout le monde a répondu. 🙌</li>}

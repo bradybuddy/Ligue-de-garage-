@@ -7,14 +7,14 @@
 import "server-only";
 import { createHash, randomBytes, randomInt } from "node:crypto";
 import { asService, asUser, type Tx } from "../db";
-import { APP_URL, email as emailTpl, sms as smsTpl } from "../messages";
+import { APP_URL, email as emailTpl, sms as smsTpl, spareEmail } from "../messages";
 import { disambiguationLabels, normalizePhone, parseSmsReply } from "../sms";
 import { fmtShortDate, fmtTime, zonedToUtc } from "../time";
 import { deliverOutbox } from "./delivery";
 import {
   DomainError, type Attendance, type AttendanceStatus, type EventDetail, type InboundSms, type Member, type OutboxItem, type PlayerClass,
   type ResponseSource, type RosterEntry, type Sport, type Team, type TeamEvent, type User,
-  type Actor, type EventInput, type EventSummary, type MemberInput,
+  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel,
 } from "./types";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -188,9 +188,10 @@ export async function getEventDetail(actor: Actor, eventId: string): Promise<Eve
     const members = await tx<Member[]>`select * from members where team_id = ${team!.id} and left_at is null and class not in ('spectator','staff')`;
     const att = new Map((await tx<Attendance[]>`select * from attendance where event_id = ${eventId}`).map((a) => [a.memberId, a]));
     const [{ uid, manager }] = await tx<{ uid: string | null; manager: boolean }[]>`select auth.uid() as uid, is_team_manager(${team!.id}::uuid) as manager`;
+    const invitedIds = new Set((await tx<{ memberId: string }[]>`select distinct member_id from spare_invites where event_id = ${eventId}`.catch(() => [])).map((r) => r.memberId));
     const entries: RosterEntry[] = members.map((m) => {
       const a = att.get(m.id);
-      return { ...m, status: a?.status ?? "no_reply", note: a?.note ?? null, respondedAt: a?.respondedAt ?? null, waitlistedAt: a?.waitlistedAt ?? null, source: a?.source ?? null };
+      return { ...m, status: a?.status ?? "no_reply", note: a?.note ?? null, respondedAt: a?.respondedAt ?? null, waitlistedAt: a?.waitlistedAt ?? null, waitlistRank: a?.waitlistRank ?? null, source: a?.source ?? null };
     });
     const byName = (a: RosterEntry, b: RosterEntry) =>
       (a.position === b.position ? 0 : a.position === "goalie" ? 1 : -1) || a.displayName.localeCompare(b.displayName, "fr-CA");
@@ -198,10 +199,12 @@ export async function getEventDetail(actor: Actor, eventId: string): Promise<Eve
     const groups = {
       in: entries.filter((e) => e.status === "in").sort(byName),
       waitlist: entries.filter((e) => e.status === "waitlist")
-        .sort((a, b) => Number(b.class === "regular") - Number(a.class === "regular") || Date.parse(a.waitlistedAt!) - Date.parse(b.waitlistedAt!)),
+        .sort((a, b) => (a.waitlistRank ?? Infinity) - (b.waitlistRank ?? Infinity)
+          || Number(b.class === "regular") - Number(a.class === "regular") || Date.parse(a.waitlistedAt!) - Date.parse(b.waitlistedAt!)),
       out: entries.filter((e) => e.status === "out").sort(byName),
       noReply: entries.filter((e) => e.status === "no_reply" && e.class === "regular").sort(byName),
       away: entries.filter((e) => e.status === "no_reply" && away(e)).sort(byName),
+      invited: entries.filter((e) => e.status === "no_reply" && e.class === "spare" && invitedIds.has(e.id)).sort(byName),
     };
     const cap = { players: event.maxPlayers ?? team!.maxPlayers, goalies: event.maxGoalies ?? team!.maxGoalies };
     return {
@@ -377,7 +380,7 @@ export async function sendReminders(actor: Actor, eventId: string, opts: { manua
 }
 
 /** Tâche planifiée (pg_cron → /api/cron/tick toutes les 2 min). Idempotente, plusieurs instances OK (skip locked). */
-export async function runTick(at: Date = new Date()): Promise<{ reminders: number; beer: number; delivered: number; failed: number }> {
+export async function runTick(at: Date = new Date()): Promise<{ reminders: number; spares: number; beer: number; delivered: number; failed: number }> {
   const atIso = at.toISOString();
   const reminders = await asService(async (tx) => {
     const due = await tx<(TeamEvent & { hours: number })[]>`
@@ -393,6 +396,7 @@ export async function runTick(at: Date = new Date()): Promise<{ reminders: numbe
     }
     return n;
   });
+  const spares = await autoInviteSpares(atIso);
   const beer = await asService(async (tx) => {
     const due = await tx<{ id: string }[]>`
       select e.id from events e join teams t on t.id = e.team_id
@@ -410,7 +414,7 @@ export async function runTick(at: Date = new Date()): Promise<{ reminders: numbe
     await tx`delete from outbox where status in ('sent','skipped') and created_at < now() - interval '90 days'`;
   });
   const d = await deliverOutbox({ limit: 200 });
-  return { reminders, beer, delivered: d.sent, failed: d.failed };
+  return { reminders, spares, beer, delivered: d.sent, failed: d.failed };
 }
 
 // ───────────── Réponses entrantes ─────────────
@@ -562,4 +566,131 @@ export async function joinTeam(userId: string, code: string): Promise<string> {
     const [t] = await tx<{ id: string }[]>`select id from teams where invite_code = upper(trim(${code}))`;
     return t!.id;
   });
+}
+
+
+// ───────────── Spares (S14) et liste d'attente (S15) ─────────────
+/** Joint un joueur pour un match : jetons de réponse (texto, courriel) + messages en file. Retourne vrai si au moins un canal part. */
+async function contactForEvent(tx: Tx, o: {
+  ev: TeamEvent; team: Team; m: Member; channels: Channel[]; category: OutboxItem["category"]; template: string; round: string;
+  sms: string; push: string; emailSubject: string; emailBody: (link: string) => string;
+}): Promise<Channel[]> {
+  const { ev, team, m } = o;
+  const expiresAt = new Date(Date.parse(ev.startsAt) + 2 * 3600_000).toISOString();
+  const used: Channel[] = [];
+  if (o.channels.includes("sms") && m.phone && m.smsOptIn && !(m as Member & { smsOptedOutAt?: string | null }).smsOptedOutAt) {
+    const [tok] = await tx`select 1 from response_tokens where event_id = ${ev.id} and member_id = ${m.id} and channel = 'sms' and expires_at > now()`;
+    if (!tok) {
+      await tx`insert into response_tokens (event_id, member_id, channel, token_hash, sms_code, expires_at)
+               values (${ev.id}, ${m.id}, 'sms', ${sha(randomBytes(18).toString("hex"))}, ${await smsCodeFor(tx, m.phone)}, ${expiresAt})`;
+    }
+    if (await enqueue(tx, { memberId: m.id, channel: "sms", category: o.category, template: o.template, to: m.phone, body: o.sms,
+      dedupeKey: `${o.template}:${ev.id}:${m.id}:sms:${o.round}`, payload: { event_id: ev.id } })) used.push("sms");
+  }
+  if (o.channels.includes("email") && m.email) {
+    const raw = randomBytes(24).toString("hex");
+    await tx`insert into response_tokens (event_id, member_id, channel, token_hash, expires_at) values (${ev.id}, ${m.id}, 'email', ${sha(raw)}, ${expiresAt})`;
+    if (await enqueue(tx, { memberId: m.id, channel: "email", category: o.category, template: o.template, to: m.email,
+      subject: o.emailSubject, body: o.emailBody(`${APP_URL}/r/${raw}`), dedupeKey: `${o.template}:${ev.id}:${m.id}:email:${o.round}`, payload: { event_id: ev.id } })) used.push("email");
+  }
+  if (o.channels.includes("push") && m.userId) {
+    if (await enqueue(tx, { memberId: m.id, channel: "push", category: o.category, template: o.template, to: null, body: o.push,
+      dedupeKey: `${o.template}:${ev.id}:${m.id}:push:${o.round}`, payload: { event_id: ev.id, url: `/t/${team.id}/matchs/${ev.id}` } })) used.push("push");
+  }
+  return used;
+}
+
+async function inviteSparesTx(tx: Tx, ev: TeamEvent, team: Team, members: Member[], channels: Channel[], note: string | null, auto: boolean, invitedBy: string | null) {
+  const ctx = evCtx(ev, team);
+  const round = auto ? "auto" : `manual-${Date.now()}`;
+  let n = 0;
+  for (const m of members) {
+    const used = await contactForEvent(tx, {
+      ev, team, m, channels, category: "spare_invite", template: "spare_invite", round,
+      sms: smsTpl.spareInvite(ctx, note), push: `${team.name} cherche un spare ${fmtShortDate(ev.startsAt, team.timezone)} à ${fmtTime(ev.startsAt, team.timezone)}. Dispo?`,
+      emailSubject: spareEmail.subject(ctx), emailBody: (link) => spareEmail.body(ctx, link, m.displayName, note),
+    });
+    if (!used.length) continue;
+    n++;
+    for (const ch of used) {
+      await tx`insert into spare_invites (event_id, member_id, invited_by, channel, message, is_auto)
+               values (${ev.id}, ${m.id}, ${invitedBy}, ${ch}, ${note}, ${auto})
+               on conflict (event_id, member_id, channel) do update set sent_at = now(), message = excluded.message`;
+    }
+  }
+  return n;
+}
+
+export async function getSparesPanel(actor: Actor, eventId: string): Promise<SparesPanel> {
+  if (!isUuid(eventId)) throw new DomainError("Match introuvable.", "not_found");
+  const { event, team } = await tx$(actor, async (tx) => {
+    const [event] = await tx<TeamEvent[]>`select * from events where id = ${eventId}`;
+    if (!event) throw new DomainError("Match introuvable.", "not_found");
+    if (actor !== "system") await assertManager(tx, event.teamId);
+    const [team] = await tx<Team[]>`select * from teams where id = ${event.teamId}`;
+    return { event, team: team! };
+  });
+  return asService(async (tx) => {
+    const [open] = await tx<{ players: number; goalies: number }[]>`select * from open_spots(${eventId})`;
+    const spares = await tx<(Member & { status: AttendanceStatus | null; invitedAt: string | null; invitedChannels: Channel[] | null })[]>`
+      select m.*, a.status, i.invited_at, i.channels as invited_channels
+        from members m
+        left join attendance a on a.event_id = ${eventId} and a.member_id = m.id
+        left join (select member_id, max(sent_at) as invited_at, array_agg(distinct channel) as channels
+                     from spare_invites where event_id = ${eventId} group by member_id) i on i.member_id = m.id
+       where m.team_id = ${team.id} and m.left_at is null and m.class = 'spare'
+       order by m.position desc, m.display_name`;
+    const rows: SpareRow[] = spares.map(({ status, invitedAt, invitedChannels, ...member }) => ({
+      member: member as Member, status: status ?? "no_reply", invitedAt, invitedChannels: invitedChannels ?? [],
+    }));
+    return { event, team, open: open ?? { players: 0, goalies: 0 }, spares: rows };
+  });
+}
+
+export async function inviteSpares(actor: Actor, eventId: string, memberIds: string[], channels: Channel[], note?: string | null): Promise<number> {
+  if (!memberIds.length) throw new DomainError("Choisis au moins un spare.");
+  if (!channels.length) throw new DomainError("Choisis au moins un canal.");
+  const panel = await getSparesPanel(actor, eventId); // droits de gérant vérifiés ici
+  if (panel.event.status !== "scheduled") throw new DomainError("Ce match n'est plus à l'horaire.", "closed");
+  const chosen = panel.spares.filter((s) => memberIds.includes(s.member.id)).map((s) => s.member);
+  if (!chosen.length) throw new DomainError("Ces joueurs ne sont pas des spares de l'équipe.");
+  const n = await asService((tx) => inviteSparesTx(tx, panel.event, panel.team, chosen, channels, note?.trim().slice(0, 200) || null, false, actor === "system" ? null : actor));
+  void deliverOutbox({ limit: 200 }).catch((e) => console.error("livraison", e));
+  return n;
+}
+
+/** Tâche planifiée : X h avant le match, s'il manque du monde, on invite les spares (texto + notif + courriel selon l'équipe). */
+async function autoInviteSpares(atIso: string): Promise<number> {
+  return asService(async (tx) => {
+    const due = await tx<(TeamEvent & { channels: Channel[] })[]>`
+      select e.*, t.auto_spares_channels as channels from events e join teams t on t.id = e.team_id
+       where t.auto_spares_enabled and e.status = 'scheduled' and e.spares_invited_at is null and e.starts_at > ${atIso}
+         and e.starts_at - make_interval(hours => t.auto_spares_hours_before) <= ${atIso}
+       for update of e skip locked`;
+    let n = 0;
+    for (const ev of due) {
+      const [team] = await tx<Team[]>`select * from teams where id = ${ev.teamId}`;
+      const [open] = await tx<{ players: number; goalies: number }[]>`select * from open_spots(${ev.id})`;
+      await tx`update events set spares_invited_at = now() where id = ${ev.id}`;
+      if (!open || (open.players === 0 && open.goalies === 0)) continue;
+      const positions = [...(open.players > 0 ? ["skater"] : []), ...(open.goalies > 0 ? ["goalie"] : [])];
+      const spares = await tx<Member[]>`
+        select m.* from members m where m.team_id = ${team!.id} and m.left_at is null and m.class = 'spare' and m.position in ${tx(positions)}
+           and not exists (select 1 from attendance a where a.event_id = ${ev.id} and a.member_id = m.id and a.status <> 'no_reply')
+           and not exists (select 1 from spare_invites i where i.event_id = ${ev.id} and i.member_id = m.id)`;
+      n += await inviteSparesTx(tx, ev, team!, spares, ev.channels, null, true, null);
+    }
+    return n;
+  });
+}
+
+export async function reorderWaitlist(actor: Actor, eventId: string, memberIds: string[]): Promise<void> {
+  if (!isUuid(eventId) || !memberIds.every(isUuid)) throw new DomainError("Introuvable.", "not_found");
+  await tx$(actor, (tx) => tx`select reorder_waitlist(${eventId}, ${memberIds}::uuid[])`);
+}
+
+export async function acceptFromWaitlist(actor: Actor, eventId: string, memberId: string): Promise<void> {
+  if (!isUuid(eventId) || !isUuid(memberId)) throw new DomainError("Introuvable.", "not_found");
+  await tx$(actor, (tx) => tx`select force_in(${eventId}, ${memberId})`);
+  void deliverOutbox({ limit: 20 }).catch((e) => console.error("livraison", e));
 }

@@ -30,6 +30,18 @@ async function asRole(userId: string, q: string) {
   });
 }
 
+/** Attend que la file soit vidée (la livraison part aussi en arrière-plan après une réponse). */
+async function drained(templates: string[]) {
+  const { deliverOutbox } = await import("../src/lib/data/delivery");
+  for (let i = 0; i < 40; i++) {
+    await deliverOutbox();
+    const [{ n }] = await admin`select count(*)::int as n from outbox where template in ${admin(templates)} and status in ('pending','sending')`;
+    if (n === 0) return;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new Error("file d'envoi pas vidée");
+}
+
 describe("Postgres + RLS", { skip }, () => {
   let marc: string, sophie: string, stranger: string, teamId: string, eventId: string;
 
@@ -140,6 +152,10 @@ describe("Postgres + RLS", { skip }, () => {
     assert.ok(after.groups.waitlist.some((m) => m.displayName === "Léa Spare"));
     const alerts = await admin`select template from outbox where template in ('player_dropped','promoted_from_waitlist')`;
     assert.deepEqual(alerts.map((a) => a.template).sort(), ["player_dropped", "promoted_from_waitlist"]);
+    // Le texte rédigé à la livraison doit nommer le match (bogue : la clé JSON event_id revenait en eventId)
+    await drained(["player_dropped", "promoted_from_waitlist"]);
+    const sent = await admin`select template, body from outbox where template in ('player_dropped','promoted_from_waitlist') and status = 'sent'`;
+    for (const r of sent) assert.doesNotMatch(r.body ?? "", /Du nouveau dans ton équipe/, r.template);
   });
 
   test("lien de courriel : contexte en lecture, réponse en écriture", async () => {
@@ -184,5 +200,69 @@ describe("Postgres + RLS", { skip }, () => {
     assert.ok(twilio.validTwilioSignature("tok", "https://x.ca/hook", params, sig));
     assert.ok(!twilio.validTwilioSignature("tok", "https://x.ca/hook", { ...params, Body: "N" }, sig));
     assert.ok(!twilio.validTwilioSignature("tok", "https://x.ca/hook", params, null));
+  });
+
+  test("spares : invitation manuelle → texto → « Y » → IN ; un non-gérant ne peut pas inviter", async () => {
+    const lea = (await admin`select id from members where display_name = 'Léa Spare' and team_id = ${teamId}`)[0]!.id;
+    await assert.rejects(data.inviteSpares(sophie, eventId, [lea], ["sms"]), /gérant/);
+    const panel = await data.getSparesPanel(marc, eventId);
+    assert.deepEqual(panel.open, { players: 2, goalies: 2 });
+    assert.equal(panel.spares.length, 1);
+    assert.equal(await data.inviteSpares(marc, eventId, [lea], ["sms", "email"], "On a besoin de toi!"), 1);
+    const [sms] = await admin`select body from outbox where template = 'spare_invite' and channel = 'sms'`;
+    assert.match(sms!.body, /Les Testeurs cherche un spare : .* « On a besoin de toi! » Dispo\? Réponds Y ou N\./);
+    assert.match(await data.handleInboundSms("4385558888", "y", "SM-spare"), /t'es IN/);
+    const after = await data.getSparesPanel(marc, eventId);
+    assert.equal(after.spares[0]!.status, "in");
+    assert.deepEqual(after.spares[0]!.invitedChannels.sort(), ["sms"]); // pas de courriel : Léa n'en a pas
+  });
+
+  test("spares : la tâche planifiée invite une seule fois, X h avant, seulement s'il manque du monde", async () => {
+    const start = Date.parse((await admin`select starts_at from events where id = ${eventId}`)[0]!.starts_at);
+    assert.equal((await data.runTick(new Date(start - 40 * 3600_000))).spares, 0); // défaut : 36 h avant
+    assert.equal((await data.runTick(new Date(start - 35 * 3600_000))).spares, 1);
+    assert.equal((await data.runTick(new Date(start - 34 * 3600_000))).spares, 0);
+    // Match complet → aucune invitation
+    const d2 = new Date(Date.now() + 6 * 86400_000).toISOString().slice(0, 10);
+    const full = (await data.createEvent(marc, teamId, { type: "game", date: d2, time: "21:15", maxPlayers: 1 })).id;
+    const det = await data.getEventDetail(marc, full);
+    await data.respond(marc, full, det.me!.id, "in");
+    await admin`update teams set auto_spares_hours_before = 200 where id = ${teamId}`;
+    await data.runTick();
+    assert.equal((await admin`select count(*)::int as n from spare_invites where event_id = ${full}`)[0]!.n, 0);
+  });
+
+  test("liste d'attente : ordre du gérant respecté, « accepter » dépasse le maximum", async () => {
+    const id = async (n: string) => (await admin`select id from members where display_name = ${n} and team_id = ${teamId}`)[0]!.id;
+    const [mm, so, bob, lea] = [await id("Marc Gérant"), await id("Sophie Joueuse"), await id("Bob Texto"), await id("Léa Spare")];
+    await data.respond(marc, eventId, mm, "in"); await data.respond(sophie, eventId, so, "in");
+    assert.equal(await data.respond("system", eventId, bob, "in"), "waitlist");
+    assert.equal(await data.respond("system", eventId, lea, "in"), "waitlist");
+    await assert.rejects(data.reorderWaitlist(sophie, eventId, [lea, bob]), /pas le droit/);
+    await data.reorderWaitlist(marc, eventId, [lea, bob]); // le gérant met la spare en premier
+    assert.deepEqual((await data.getEventDetail(marc, eventId)).groups.waitlist.map((w) => w.displayName), ["Léa Spare", "Bob Texto"]);
+    await data.respond(sophie, eventId, so, "out");
+    let d = await data.getEventDetail(marc, eventId);
+    assert.ok(d.groups.in.some((m) => m.displayName === "Léa Spare"), "l'ordre manuel prime sur « régulier d'abord »");
+    await data.acceptFromWaitlist(marc, eventId, bob);
+    d = await data.getEventDetail(marc, eventId);
+    assert.equal(d.counts.in, 3); // au-delà du maximum de 2, voulu par le gérant
+    await assert.rejects(data.acceptFromWaitlist(sophie, eventId, bob), /pas le droit/);
+  });
+
+  test("mode « premier qui accepte » : toute la file est avisée et peut répondre Y par texto", async () => {
+    await admin`update teams set waitlist_mode = 'first_accept' where id = ${teamId}`;
+    const id = async (n: string) => (await admin`select id from members where display_name = ${n} and team_id = ${teamId}`)[0]!.id;
+    const [mm, so, bob, lea] = [await id("Marc Gérant"), await id("Sophie Joueuse"), await id("Bob Texto"), await id("Léa Spare")];
+    await data.respond(marc, eventId, mm, "in"); await data.respond(sophie, eventId, so, "in");
+    await data.respond("system", eventId, bob, "in"); await data.respond("system", eventId, lea, "in");
+    await data.respond(sophie, eventId, so, "out");
+    await drained(["spot_open"]);
+    const notices = await admin`select to_address, status, body from outbox where template = 'spot_open' order by to_address`;
+    assert.ok(notices.every((n) => /Une place s'est libérée/.test(n.body)), "texte de l'avis");
+    assert.deepEqual(notices.map((n) => n.to_address), ["+14385558888", "+14385559999"]);
+    assert.ok(notices.every((n) => n.status === "sent"));
+    assert.match(await data.handleInboundSms("4385558888", "Y", "SM-first-1"), /t'es IN/);       // Léa : première
+    assert.match(await data.handleInboundSms("4385559999", "Y", "SM-first-2"), /liste d'attente/); // Bob : trop tard
   });
 });

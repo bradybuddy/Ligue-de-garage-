@@ -34,6 +34,9 @@ export interface Team {
   autoSparesHoursBefore: number;
   waitlistMode: WaitlistMode;
   beerEnabled: boolean;
+  autoSparesChannels: Channel[];
+  secondReminderHoursBefore?: number | null;
+  beerTiebreak?: "alpha" | "jersey";
   createdAt: string;
 }
 
@@ -72,6 +75,7 @@ export interface TeamEvent {
   scoreUs: number | null;
   scoreThem: number | null;
   reminderSentAt: string | null;
+  sparesInvitedAt?: string | null;
   createdAt: string;
 }
 
@@ -139,6 +143,7 @@ export interface RosterEntry extends Member {
   note: string | null;
   respondedAt: string | null;
   waitlistedAt: string | null;
+  waitlistRank?: number | null;
   source: ResponseSource | null;
 }
 
@@ -153,6 +158,7 @@ export interface EventDetail {
     out: RosterEntry[];
     noReply: RosterEntry[];
     away: RosterEntry[]; // vacances, blessé, suspendu
+    invited: RosterEntry[]; // spares invités qui n'ont pas encore répondu
   };
   me: RosterEntry | null;
   canManage: boolean;
@@ -188,4 +194,17 @@ export interface EventSummary extends TeamEvent {
   myStatus: AttendanceStatus | null;
   inCount: number;
   cap: number;
+}
+
+export interface SpareRow {
+  member: Member;
+  status: AttendanceStatus;
+  invitedAt: string | null;
+  invitedChannels: Channel[];
+}
+export interface SparesPanel {
+  event: TeamEvent;
+  team: Team;
+  open: { players: number; goalies: number };
+  spares: SpareRow[];
 }
