@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { requireUser, supabaseAuthEnabled } from "@/lib/auth";
-import { listMyTeams } from "@/lib/data";
+import { getNotificationPrefs, listMyTeams } from "@/lib/data";
+import { PrefsGrid } from "@/components/app/prefs-grid";
 import { prettyPhone } from "@/lib/sms";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { DeleteAccountForm } from "@/components/app/auth-forms";
@@ -17,7 +18,7 @@ export const metadata = { title: "Mon compte · Buddy & Beer" };
 /** S26 — Mon compte (partiel : profil, notifs de l'appareil, sessions, suppression) */
 export default async function Page() {
   const user = await requireUser("/compte");
-  const teams = await listMyTeams(user.id);
+  const [teams, prefs] = await Promise.all([listMyTeams(user.id), getNotificationPrefs(user.id)]);
   const section = "flex flex-col gap-3 border-t border-border pt-5";
   return (
     <AuthLayout title="Mon compte" subtitle={user.email}>
@@ -30,8 +31,14 @@ export default async function Page() {
         </section>
         <section aria-labelledby="push-h" className={section}>
           <h2 id="push-h" className="font-bold">Notifications</h2>
-          <p className="text-sm text-muted">Les notifs sont gratuites et instantanées. Les rappels par texto et courriel continuent sans elles. Chaque courriel a un lien pour te désabonner de ce type d&apos;envoi.</p>
+          <p className="text-sm text-muted">Choisis quoi recevoir et comment. Les notifs sont gratuites et instantanées. Chaque courriel a aussi un lien pour te désabonner de ce type d&apos;envoi.</p>
           <PushToggle />
+          {prefs.map((p) => (
+            <div key={p.memberId} className="flex flex-col gap-2">
+              {prefs.length > 1 && <h3 className="font-semibold">{p.teamName}</h3>}
+              <PrefsGrid prefs={p} />
+            </div>
+          ))}
         </section>
         {teams.length > 0 && (
           <section aria-labelledby="cal-h" className={section}>

@@ -11,34 +11,34 @@ Classement des joueurs pour équilibrer les équipes,Alignement,could,yes,no,E
 Horaire : ajouter/modifier/supprimer un match,Horaire,must,yes,yes,"S06-S08 | clone : S06, S08 ; annuler ou supprimer avec confirmation ; heure stockée en UTC"
 Importer l'horaire CSV/Excel,Horaire,should,yes,no,S09
 Synchro auto de l'horaire de la ligue (iCal),Horaire,should,PRO,no,C
-Abonnement calendrier (ICS) pour le joueur,Horaire,must,yes,no,F; bogue d'heure avancée à éviter
+Abonnement calendrier (ICS) pour le joueur,Horaire,must,yes,yes,F; bogue d'heure avancée à éviter | clone : heures UTC avec Z (pas de bogue au changement d'heure) ; ma réponse dans la description
 Assigner les chambres,Horaire,could,yes,yes,"E | clone : chambre domicile/visiteurs sur S08, affichées sur S07"
 Réponse IN/OUT dans l'appli,Présences,must,yes,yes,"F02 cœur | clone : S05, S07 ; clavier OK ; liste d'attente si complet"
 Réponse IN/OUT par courriel,Présences,must,yes,yes,"C | clone : Resend branché, testé de bout en bout avec Mailpit ; à valider avec la vraie clé"
 Réponse IN/OUT par texto (Y/N),Présences,must,PRO,yes,"C; inclus chez nous | clone : webhook Twilio signé, testé de bout en bout ; vrai numéro à brancher"
 Note sur la présence,Présences,should,yes,partial,F | clone : stockée et affichée ; pas encore de champ pour l'écrire
-Rappels automatiques avant le match (délai réglable),Présences,must,yes,partial,"E | clone : tâche idempotente, 48 h avant ; réglage du délai (S25) et pg_cron à brancher"
+Rappels automatiques avant le match (délai réglable),Présences,must,yes,yes,E | clone : délai réglable dans S25
 Relance manuelle des sans-réponse,Présences,should,yes,yes,E | clone : bouton sur S07
 Avis au gérant quand un joueur passe IN→OUT,Présences,must,yes,yes,"E | clone : livré par push, sinon texto, sinon courriel"
 Check-in automatique,Présences,could,yes,no,F
 Max joueurs / max gardiens,Présences,must,yes,yes,"G | clone : plafonds séparés, par équipe et par match"
-Invitations automatiques aux spares,Spares,must,PRO,no,G; notre argument #1; ajouter texto + notif (BenchApp = courriel seulement en auto)
-Invitation manuelle de spares (courriel/texto/notif),Spares,must,yes,no,S14
-Liste d'attente,Spares,must,yes,partial,"S15 | clone : automatique ; écran S15 (réordonner, accepter) au jalon 2"
-Liste d'attente auto (haut de liste ou premier qui accepte),Spares,must,PRO,partial,H | clone : mode haut de liste (réguliers d'abord) fait ; « premier qui accepte » au jalon 2
+Invitations automatiques aux spares,Spares,must,PRO,yes,G; notre argument #1; ajouter texto + notif (BenchApp = courriel seulement en auto) | clone : tâche planifiée X h avant s'il manque du monde ; texto + notif + courriel (canaux réglables)
+Invitation manuelle de spares (courriel/texto/notif),Spares,must,yes,yes,S14 | clone : S14 ; petit mot du gérant ; on voit qui est déjà invité
+Liste d'attente,Spares,must,yes,yes,"S15 | clone : S15 ; ordre manuel au clavier, accepter au-delà du max"
+Liste d'attente auto (haut de liste ou premier qui accepte),Spares,must,PRO,yes,"H | clone : les deux modes, réglables dans S25 ; « Y » par texto marche aussi pour les spares sans compte"
 Frais de spare,Spares,should,yes,no,E
 Payer pour jouer (carte avant IN),Spares,could,PRO,no,C
 Formation / trios,Match,should,yes,no,S10
 Équipes Foncé/Pâle au hasard,Match,could,yes,no,E
-Rotation des bières auto,Bière,must,yes,partial,J; notre identité Buddy & Beer | clone : choix auto 24 h avant (pick_beer) + avis « c'est ta tournée » ; aucun écran ne le montre encore (S22)
+Rotation des bières auto,Bière,must,yes,yes,J; notre identité Buddy & Beer | clone : S22 ; choix auto 24 h avant ou manuel ; compteur de saison
 Compteur de consommations,Bière,could,yes,no,J
-Se retirer de la rotation,Bière,must,yes,no,J
-Chat d'équipe + GIF + réactions,Communication,must,yes,no,S16; bogue de réactions à éviter
+Se retirer de la rotation,Bière,must,yes,yes,J | clone : interrupteur sur S22
+Chat d'équipe + GIF + réactions,Communication,must,yes,partial,"S16; bogue de réactions à éviter | clone : chat, réactions avec tous les noms, suppression : faits ; GIF : code prêt mais clé GIPHY requise et pas testé ; temps réel par rafraîchissement aux 4 s"
 Messages privés,Communication,should,yes,no,S17
-Diffusion courriel/texto/notif,Communication,must,partial PRO,no,S18
+Diffusion courriel/texto/notif,Communication,must,partial PRO,yes,S18 | clone : S18 ; public par classe ; 5 par jour max ; historique
 Bulletins et sondages,Communication,should,PRO,no,S19
 Médias d'équipe,Communication,could,yes,no,E
-Contrôle des courriels (désabonnement facile),Communication,must,unclear,partial,plainte L: 67 courriels/semaine | clone : désabonnement en un clic par type d'envoi (RFC 8058) ; écran de préférences S26 à faire
+Contrôle des courriels (désabonnement facile),Communication,must,unclear,yes,plainte L: 67 courriels/semaine | clone : grille de préférences par type et canal (S26) + désabonnement un clic ; le chat ne part jamais par courriel
 Pointage rapide (score final),Stats,should,yes,no,E
 Pointeur complet (buts/passes/punitions/tirs),Stats,could,PRO,no,S23
 Stats joueurs + gardiens,Stats,should,yes,no,S24

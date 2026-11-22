@@ -14,7 +14,8 @@ for (const [label, viewport] of [["mobile", { width: 390, height: 844 }], ["bure
     const match = await addMatch(page, base, { opponent: "Les Castors de la Rive-Sud" });
     const member = await page.goto(`${base}/alignement`).then(() => page.getByRole("link", { name: /Modifier Jean-François/ }).getAttribute("href"));
     for (const url of [base, `${base}/horaire`, `${base}/horaire?vue=passes`, `${base}/horaire/nouveau`, match, `${match}/modifier`,
-      `${base}/alignement`, `${base}/alignement/nouveau`, member!, `${base}/plus`, "/compte", "/equipes"]) {
+      `${base}/alignement`, `${base}/alignement/nouveau`, member!, `${base}/plus`, "/compte", "/equipes",
+      `${match}/spares`, `${match}/attente`, `${base}/chambre`, `${base}/diffusion`, `${base}/tournee`, `${base}/reglages`]) {
       await page.goto(url);
       await expect(page.locator("main, body").first()).toBeVisible();
       await expectAccessible(page);

@@ -71,3 +71,23 @@ La couche de démo est remplacée par Postgres/Supabase quand `DATABASE_URL` est
 ## Passe de test (2026-11-22)
 
 Plan dans `test-plan.md`, specs dans `e2e/`, bogues dans `bugs.md`. 7 bogues reproduits et corrigés (2 S2, 4 S3, 1 S4), chacun avec son test. S03 (rejoindre par lien ou code) est maintenant bâti : c'était BUG-003.
+
+## Jalon 2 (2026-11-22)
+
+**Décision : la couche de démo en mémoire est retirée.** Chaque fonction devait être écrite deux fois, et la pile Supabase locale tourne avec Docker. Une seule couche de données maintenant ; l'appli exige Supabase, local ou en ligne.
+
+| Écran | Date | État | Ce qui manque | Plus dur que prévu |
+|---|---|---|---|---|
+| S14 Inviter des spares | 2026-11-22 | fait | — | **Bogue trouvé en route :** le pilote Postgres convertit les clés **à l'intérieur** du JSON en camelCase (`event_id` → `eventId`). Tous les avis mis en file par SQL (gérant, promotion, tournée) partaient avec « Du nouveau dans ton équipe. » Corrigé ; le texte réellement envoyé est maintenant gardé dans la file. |
+| Invitations automatiques | 2026-11-22 | fait | — | Il faut créer un jeton de réponse pour les avis rédigés en SQL, sinon un spare sans compte qui répond « Y » tombe sur « rien en attente ». |
+| S15 Liste d'attente | 2026-11-22 | fait | — | L'ordre manuel du gérant doit passer avant la règle « réguliers d'abord » (migration 0007). |
+| Calendrier ICS | 2026-11-22 | fait | — | Lignes coupées à 75 **octets** (les accents comptent double). Un antislash perdu laissait les `;` non échappés : attrapé par le test. |
+| S22 La tournée | 2026-11-22 | fait | Compteur de consommations (could) | — |
+| S16 La chambre | 2026-11-22 | partiel | GIF : code prêt, clé GIPHY requise, **pas testé**. Temps réel : rafraîchissement aux 4 s (Supabase Realtime pas dans la pile locale). Pas de compteur de non-lus. | **Bogue trouvé :** un message du chat retombait sur le **courriel** quand le coéquipier n'avait pas les notifs (la plainte des « 67 courriels »). Le repli est maintenant réservé aux avis importants. |
+| S18 Message à l'équipe | 2026-11-22 | fait | — | Compteur de segments de texto (les accents → 70 caractères par segment) ; 5 diffusions par jour au maximum (coût des textos). |
+| S25 Réglages | 2026-11-22 | fait | Frais de spare, 2e rappel | — |
+| S26 Préférences d'avis | 2026-11-22 | fait | — | Avertissement si on coupe tous les rappels. |
+
+Tests : 49 de bout en bout (2 passages de suite), 17 sur la base, 3 de logique. axe : 0 violation sur les 24 écrans bâtis, à 390 et 1440 px.
+
+**Écrans bâtis : 19 sur 36.** Parité : **51,9 %** (33,3 % avant). Must : **20 faits, 2 partiels, 3 manquants** (les 3 de la ligue).

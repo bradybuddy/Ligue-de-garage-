@@ -231,3 +231,18 @@ export interface ChatMessage {
   reactions: { emoji: string; names: string[]; mine: boolean }[];
 }
 export interface BroadcastSummary { id: string; subject: string | null; body: string; channels: Channel[]; audience: PlayerClass[]; sentAt: string | null; authorName: string | null; recipients: number }
+
+export interface TeamSettingsInput {
+  name: string;
+  maxPlayers: number;
+  maxGoalies: number;
+  reminderHoursBefore: number;
+  autoSparesEnabled: boolean;
+  autoSparesHoursBefore: number;
+  autoSparesChannels: Channel[];
+  waitlistMode: WaitlistMode;
+  beerEnabled: boolean;
+  beerTiebreak: "alpha" | "jersey";
+}
+export type PrefCategory = "reminder" | "spare_invite" | "waitlist" | "beer" | "chat" | "broadcast" | "manager_alert";
+export interface MemberPrefs { teamId: string; teamName: string; memberId: string; isManager: boolean; isSpare: boolean; off: string[] /* "categorie:canal" désactivés */ }

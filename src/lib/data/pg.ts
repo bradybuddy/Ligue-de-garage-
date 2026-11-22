@@ -14,7 +14,7 @@ import { deliverOutbox } from "./delivery";
 import {
   DomainError, type Attendance, type AttendanceStatus, type EventDetail, type InboundSms, type Member, type OutboxItem, type PlayerClass,
   type ResponseSource, type RosterEntry, type Sport, type Team, type TeamEvent, type User,
-  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview, type ChatMessage, type BroadcastSummary,
+  type Actor, type EventInput, type EventSummary, type MemberInput, type Channel, type SpareRow, type SparesPanel, type BeerOverview, type ChatMessage, type BroadcastSummary, type TeamSettingsInput, type MemberPrefs, type PrefCategory, type MemberRole,
 } from "./types";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -916,5 +916,44 @@ export async function listBroadcasts(userId: string, teamId: string): Promise<Br
       select split_part(dedupe_key, ':', 2) as id, count(distinct member_id)::int as n from outbox
        where dedupe_key like 'bc:%' and split_part(dedupe_key, ':', 2) in ${s(rows.map((r) => r.id))} group by 1`) : [];
     return rows.map(({ authorId: _a, ...r }) => ({ ...r, recipients: counts.find((c) => c.id === r.id)?.n ?? 0 }));
+  });
+}
+
+// ───────────── Réglages d'équipe (S25) et préférences d'avis (S26) ─────────────
+export async function updateTeamSettings(actor: Actor, teamId: string, s: TeamSettingsInput): Promise<Team> {
+  return tx$(actor, async (tx) => {
+    if (actor !== "system") await assertManager(tx, teamId);
+    const [t] = await tx<Team[]>`
+      update teams set name = ${s.name.trim()}, max_players = ${s.maxPlayers}, max_goalies = ${s.maxGoalies},
+             reminder_hours_before = ${s.reminderHoursBefore}, auto_spares_enabled = ${s.autoSparesEnabled},
+             auto_spares_hours_before = ${s.autoSparesHoursBefore}, auto_spares_channels = ${s.autoSparesChannels},
+             waitlist_mode = ${s.waitlistMode}, beer_enabled = ${s.beerEnabled}, beer_tiebreak = ${s.beerTiebreak}
+       where id = ${teamId} returning *`;
+    if (!t) throw new DomainError("Équipe introuvable.", "not_found");
+    return t;
+  });
+}
+
+export async function getNotificationPrefs(userId: string): Promise<MemberPrefs[]> {
+  return asUser(userId, async (tx) => {
+    const rows = await tx<{ teamId: string; teamName: string; memberId: string; role: MemberRole; class: PlayerClass }[]>`
+      select m.team_id, t.name as team_name, m.id as member_id, m.role, m.class from members m join teams t on t.id = m.team_id
+       where m.user_id = ${userId} and m.left_at is null order by t.name`;
+    const off = rows.length ? await tx<{ memberId: string; category: string; channel: string }[]>`
+      select member_id, category, channel from notification_prefs where member_id in ${tx(rows.map((r) => r.memberId))} and not enabled` : [];
+    return rows.map((r) => ({
+      teamId: r.teamId, teamName: r.teamName, memberId: r.memberId, isManager: r.role !== "member", isSpare: r.class === "spare",
+      off: off.filter((o) => o.memberId === r.memberId).map((o) => `${o.category}:${o.channel}`),
+    }));
+  });
+}
+
+export async function setNotificationPref(userId: string, memberId: string, category: PrefCategory, channel: Channel, enabled: boolean): Promise<void> {
+  if (!isUuid(memberId)) throw new DomainError("Introuvable.", "not_found");
+  await asUser(userId, async (tx) => {
+    const [m] = await tx`select 1 from members where id = ${memberId} and user_id = ${userId}`;
+    if (!m) throw new DomainError("Ce n'est pas ta fiche.", "forbidden");
+    await tx`insert into notification_prefs (member_id, category, channel, enabled) values (${memberId}, ${category}, ${channel}, ${enabled})
+             on conflict (member_id, category, channel) do update set enabled = excluded.enabled`;
   });
 }
