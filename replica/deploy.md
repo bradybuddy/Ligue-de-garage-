@@ -17,7 +17,7 @@ Relancer en tout temps : `npm run preflight` (et `npm run preflight -- --prod` a
 - [x] Build de production : réussi
 - [x] **Pages légales :** `/confidentialite` (Loi 25, chaque fournisseur nommé) et `/conditions`, liées depuis l'accueil et l'inscription. Exploitant et responsable de la protection des renseignements personnels : Jean Claude Houle, Mirabel (Québec) ; contact : `buddybeer@gmail.com`. Ce sont des **ébauches** : à faire relire par un avocat avant d'ouvrir au public.
 - [x] Suppression du compte : marche (test X-A3) ; l'historique d'équipe devient « Ancien joueur »
-- [~] Icône, favicon, image sociale, manifeste PWA : **faits, avec une icône provisoire** tirée du brief de logo (rondelle ambre + crochet). Quand le designer livre le logo : remplacer `src/app/icon.svg`, puis `npm run brand:assets`. Même commande après un changement de nom (l'image sociale contient le nom).
+- [x] Logo, icônes, favicon, image sociale, manifeste PWA : **logo du propriétaire** (2026-11-23), découpé sur fond transparent ; favicon = la chope seule. Régénérer avec `npm run brand:assets`.
 - [x] Témoins : un seul, la session (essentiel) → pas de bannière de témoins nécessaire
 
 Ajouté pendant cette étape :
@@ -135,7 +135,7 @@ Libres au 2026-11-22 (`brand.json`) : `aucomplet.ca`, `aucomplet.com`, `aucomple
 - [x] production build passes
 - [x] privacy policy and terms live, every processor listed (ébauches ; relecture par un avocat recommandée)
 - [x] account deletion works
-- [~] favicon, titles, OG image, emails, app icon are yours (icône provisoire d'après le brief)
+- [x] favicon, titles, OG image, emails, app icon are yours (logo du propriétaire)
 
 ## Production
 - [ ] separate production database, backups on, migrations in the deploy (npm run vercel-build ✓ dans le code)

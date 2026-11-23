@@ -78,7 +78,14 @@ Les rôles de `replica-design` ne changent pas ; seules les valeurs bougent. Le 
 
 Les couleurs de l'original sont dans `brand.json` → `avoid.colors`, pour le balayage.
 
-## 3. Brief de logo
+## 3. Logo
+
+**Logo retenu (2026-11-23) : fourni par le propriétaire** : sceau rond rouge et crème, chope de bière au centre, deux bâtons croisés, « BUDDY & BEER » et « EST. 1969 ». Fichiers et régénération : `brand.json` → `logo`.
+- Utilisé : en-têtes (accueil public, connexion, équipe), icônes d'appli 180/192/512, image sociale ; favicon = la chope seule (le sceau complet n'est plus lisible sous 48 px).
+- Contrôle face à l'original : rond et non en écusson, rouge et crème et non bleu et blanc ; aucune forme commune. Écarts au brief ci-dessous (bâtons croisés, un bâton bleu) : acceptés.
+- « EST. 1969 » est un clin d'œil : l'appli date de 2026. Ne jamais l'affirmer dans la fiche ou les pubs.
+
+### Brief de départ (pour mémoire)
 
 **Idée en une ligne :** une rondelle vue de haut, dont le centre forme un crochet ✓. « Tout le monde est là. »
 

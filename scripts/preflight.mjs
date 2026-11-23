@@ -70,11 +70,10 @@ for (const page of ["confidentialite", "conditions"]) {
 }
 
 // 6. Icônes, manifeste, image sociale
-for (const f of ["src/app/icon.svg", "src/app/apple-icon.png", "src/app/opengraph-image.png", "src/app/manifest.ts", "public/icons/icon-512.png", "public/icons/maskable-512.png"]) {
+for (const f of ["public/brand/logo.png", "src/app/icon.png", "src/app/apple-icon.png", "src/app/opengraph-image.png", "src/app/manifest.ts", "public/icons/icon-512.png", "public/icons/maskable-512.png"]) {
   try { statSync(join(root, f)); } catch { fail(`fichier manquant : ${f}`); continue; }
 }
-if (readFileSync(join(root, "src/app/icon.svg"), "utf8").includes("PROVISOIRE")) warn("l'icône est provisoire (brief de logo) : à remplacer par le logo du designer, puis npm run brand:assets");
-else ok("icône finale");
+ok("logo, icônes et image sociale présents (régénérer avec npm run brand:assets)");
 
 // 7. Variables de production
 if (prod) {

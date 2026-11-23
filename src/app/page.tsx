@@ -1,10 +1,11 @@
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Beer, KeyRound, Trophy, UsersRound } from "lucide-react";
+import { KeyRound, Trophy, UsersRound } from "lucide-react";
 import { currentUser } from "@/lib/auth";
 import { listMyLeagues, listMyTeams } from "@/lib/data";
 import { Landing } from "@/components/app/landing";
+import { BrandMark } from "@/components/app/brand-mark";
 
 /** S01 — Accueil / choix du rôle */
 export default async function Home() {
@@ -26,7 +27,7 @@ export default async function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-content flex-col justify-center gap-8 px-4 py-10">
       <div className="flex flex-col gap-3">
-        <span className="flex size-12 items-center justify-center rounded-full bg-accent text-on-accent"><Beer aria-hidden className="size-6" /></span>
+        <BrandMark size={72} />
         <h1 className="font-display text-3xl font-bold">{APP_NAME}</h1>
         <p className="text-lg text-muted">Qui est là jeudi? Fini les 40 textos pour le savoir.</p>
         <p className="font-semibold">{APP_TAGLINE} Rien à installer, rien à mettre à jour : les gars répondent Y par texto.</p>

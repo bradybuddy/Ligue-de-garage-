@@ -1,12 +1,12 @@
 import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
-import { Beer } from "lucide-react";
+import { BrandMark } from "@/components/app/brand-mark";
 
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-6 px-4 py-10">
       <Link href="/" className="flex items-center gap-2 self-start font-display text-xl font-bold">
-        <span className="flex size-9 items-center justify-center rounded-full bg-accent text-on-accent"><Beer aria-hidden className="size-5" /></span>
+        <BrandMark size={36} />
         {APP_NAME}
       </Link>
       <div>

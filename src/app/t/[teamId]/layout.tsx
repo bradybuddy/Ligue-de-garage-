@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Beer, LogOut, Trophy } from "lucide-react";
+import { LogOut, Trophy } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getTeamForUser } from "@/lib/data";
 import { orNotFound } from "@/lib/guard";
 import { TeamBottomNav, TeamSideNav } from "@/components/app/team-nav";
 import { signOutAction } from "@/app/actions/auth";
+import { BrandMark } from "@/components/app/brand-mark";
 
 export default async function TeamLayout({ children, params }: { children: React.ReactNode; params: Promise<{ teamId: string }> }) {
   const { teamId } = await params;
@@ -17,7 +18,7 @@ export default async function TeamLayout({ children, params }: { children: React
       <header className="sticky top-0 z-30 border-b border-border bg-surface">
         <div className="flex h-14 items-center justify-between gap-3 px-4">
           <Link href="/equipes" className="flex min-w-0 items-center gap-2" aria-label={`${team.name} — changer d'équipe`}>
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent"><Beer aria-hidden className="size-4" /></span>
+            <BrandMark size={32} className="shrink-0" />
             <span className="truncate font-display text-xl font-bold">{team.name}</span>
           </Link>
           {team.leagueId && (

@@ -85,5 +85,20 @@
   ],
   "keep_stable": [
     "UID des événements ICS (@buddyandbeer) : le changer dédoublerait les matchs dans les calendriers déjà abonnés"
-  ]
+  ],
+  "logo": {
+    "source": "fourni par le propriétaire le 2026-11-23 (public/brand/logo-original.jpg)",
+    "files": {
+      "transparent": "public/brand/logo.png (740×740)",
+      "small": "public/brand/logo-96.png, logo-192.png",
+      "favicon": "src/app/icon.png (chope seule, lisible à 16-32 px)"
+    },
+    "regenerate": "npm run brand:assets",
+    "notes": [
+      "Écart au brief : bâtons croisés et un bâton bleu ; acceptable (rond, pas d'écusson ; rouge et crème, pas la paire bleu-blanc de l'original)",
+      "« EST. 1969 » est décoratif : l'appli date de 2026 ; ne jamais l'écrire comme un fait (fiche, pubs)",
+      "Image très détaillée : le logo complet ne se lit pas sous 48 px, d'où la chope seule en favicon",
+      "Droits : s'assurer d'avoir les droits sur l'image (créée ou générée pour toi) avant de déposer une marque"
+    ]
+  }
 }

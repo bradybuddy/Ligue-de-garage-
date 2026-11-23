@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 import { addMatch, addPlayer, expect, expectAccessible, expectNoHorizontalScroll, inboundSms, sql, teamWithManager, test, uniqPhone } from "./fixtures";
 
 const CRON = readFileSync(".env.local", "utf8").match(/^CRON_SECRET=(.*)$/m)?.[1] ?? "";
-const tomorrow = () => new Date(Date.now() + 26 * 3600_000).toISOString().slice(0, 10);
+/** Date et heure locales (fuseau de l'équipe) dans `h` heures : ne dépend pas de l'heure où le test roule. */
+const inHours = (h: number) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date(Date.now() + h * 3600_000)).map((x) => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
+};
 const region = (p: import("@playwright/test").Page, name: string) => p.getByRole("region", { name, exact: true });
 
 test.describe("F03/F05 — spares", () => {
@@ -42,7 +47,7 @@ test.describe("F03/F05 — spares", () => {
     const { base } = await teamWithManager(page);
     const phone = uniqPhone();
     await addPlayer(page, base, { name: "Auto Spare", phone, cls: "spare" });
-    const match = await addMatch(page, base, { date: tomorrow() });
+    const match = await addMatch(page, base, inHours(12)); // dans la fenêtre de 36 h des spares automatiques
     const r = await request.post("/api/cron/tick", { headers: { authorization: `Bearer ${CRON}` } });
     expect(r.status()).toBe(200);
     await expect.poll(async () => (await sql`select count(*)::int as n from outbox where template = 'spare_invite' and to_address = ${"+1" + phone}`)[0]!.n).toBe(1);

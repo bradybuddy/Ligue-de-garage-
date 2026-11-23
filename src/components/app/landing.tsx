@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Beer, BellRing, CalendarClock, Check, KeyRound, MessageSquareText, RefreshCw, ShieldCheck, Trophy, UserPlus, UsersRound } from "lucide-react";
+import { BellRing, CalendarClock, Check, KeyRound, MessageSquareText, RefreshCw, ShieldCheck, Trophy, UserPlus, UsersRound } from "lucide-react";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
+import { BrandMark } from "@/components/app/brand-mark";
 
 // Page publique (visiteur pas connecté). Textes : replica/launch/landing.md.
 // Aucune fausse preuve : pas de témoignages, de compteurs ni d'étoiles.
@@ -65,7 +66,7 @@ export function Landing() {
     <div className="min-h-dvh bg-bg text-text">
       <header className="mx-auto flex max-w-wide items-center justify-between gap-4 px-4 py-4">
         <span className="flex items-center gap-2 font-display text-xl font-bold">
-          <span className="flex size-9 items-center justify-center rounded-full bg-accent text-on-accent"><Beer aria-hidden className="size-5" /></span>
+          <BrandMark size={40} />
           {APP_NAME}
         </span>
         <Link href="/connexion" className="rounded-md px-3 py-2 text-sm font-semibold text-accent-strong underline underline-offset-4 hover:bg-surface-2">
